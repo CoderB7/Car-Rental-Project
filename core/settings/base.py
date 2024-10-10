@@ -45,8 +45,8 @@ DJANGO_APPS = [
 
 CUSTOM_APPS = [
     "apps.users",
-    "apps.common",
-    "apps.transaction",
+    "apps.shared",
+    "apps.payment",
     "apps.cars",
 ]
 
