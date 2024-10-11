@@ -93,22 +93,35 @@ UNFOLD = {
                     {
                         "title": ("Driver Licence"),
                         "icon": "assignment",
-                        "link": reverse_lazy("admin:order_order_changelist"),
+                        "link": reverse_lazy("admin:users_driverlicence_changelist"),
                     }
                 ]
             },
-            # Service
-            # {
-            #     "title": _("Service"),
-            #     "separator": True,
-            #     "items": [
-            #         {
-            #             "title": _("Service"),
-            #             "icon": "home_repair_service",
-            #             "link": reverse_lazy("admin:service_service_changelist"),
-            #         },
-            #     ]
-            # },
+            # Brand
+            {
+                "title": _("Brand"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Brand"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:car_brand_changelist"),
+                    },
+                ]
+            },
+            # Car
+            {
+                "title": _("Car"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Car"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:car_car_changelist"),
+                    },
+                ]
+            },
+            
             # Common
             # {
             #     "title": _("Common"),

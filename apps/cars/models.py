@@ -2,6 +2,20 @@ from django.db import models
 
 from apps.shared.models import TimeStampedModel
 
+class Brand(TimeStampedModel):
+    name = models.CharField(max_length=64, unique=True)
+    origin = models.CharField(max_length=64, null=True, blank=True)
+    logo = models.ImageField(upload_to='brands/', null=True, blank=True)
+    year = models.IntegerField()
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = ('Brand')
+        verbose_name_plural = ('Brands')
+
+
 class Car(TimeStampedModel):
     class TransmissionChoices(models.TextChoices):
         MANUAL = ('manual', 'Manual') # 0->database, 1->for user
@@ -22,6 +36,7 @@ class Car(TimeStampedModel):
         LIMOUSINE = ('limuosine', 'Limousine')
 
     name = models.CharField(max_length=64)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, related_name='car')
     transmission = models.CharField(
         max_length=12,
         choices=TransmissionChoices.choices,
@@ -47,9 +62,11 @@ class Car(TimeStampedModel):
     rating = models.DecimalField(max_digits=2, decimal_places=1)
 
     def __str__(self):
-        return f'{self.name}' # add brand also
+        return f'{self.name} - {self.brand.name}' # add brand also
     
     class Meta:
         verbose_name = ('Car')
         verbose_name_plural = ('Cars')
         
+
+
