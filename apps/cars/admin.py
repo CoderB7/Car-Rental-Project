@@ -24,6 +24,6 @@ class BrandAdmin(ModelAdmin):
         ("Brand", {"fields": ("name", "origin", "year", "logo")}),
     )
     list_display = ("id", "name", "origin", "year")
-    list_filter = ("year")
+    list_filter = ("year",)
     search_fields = ("name", "origin", "year")
-    ordering = ("-id")
+    ordering = ("-id",)
