@@ -46,3 +46,17 @@ class User(SoftDeleteModel, AbstractUser, TimeStampedModel):
         super(User, self).save(*args, **kwargs)
 
 
+class DriverLicence(TimeStampedModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='driver_licence')
+    
+    number = models.CharField(max_length=32, unique=True)
+    issuing_state = models.CharField(max_length=64)
+    expiry_date = models.DateField()
+    image = models.ImageField(upload_to='user/driver_licence/', blank=True, null=True)
+    
+    def __str__(self):
+        return f'{self.user} - {self.number}'
+
+    class Meta:
+        verbose_name = ('Driver Licence')
+        verbose_name_plural = ('Driver Licences')
