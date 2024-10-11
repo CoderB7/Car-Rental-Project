@@ -85,18 +85,18 @@ UNFOLD = {
                     },
                 ],
             },
-            # Order
-            # {
-            #     "title": _("Order"),
-            #     "separator": True,
-            #     "items": [
-            #         {
-            #             "title": _("Order"),
-            #             "icon": "assignment",
-            #             "link": reverse_lazy("admin:order_order_changelist"),
-            #         }
-            #     ]
-            # },
+            # Driver Licence
+            {
+                "title": ("Driver Licence"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": ("Driver Licence"),
+                        "icon": "assignment",
+                        "link": reverse_lazy("admin:order_order_changelist"),
+                    }
+                ]
+            },
             # Service
             # {
             #     "title": _("Service"),

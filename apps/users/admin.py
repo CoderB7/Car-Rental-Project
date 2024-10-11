@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, Group
 
 from unfold.admin import ModelAdmin
 
-from .models import User
+from .models import User, DriverLicence
 
 admin.site.unregister(Group)
 
@@ -45,3 +45,13 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
     pass
 
 
+@admin.register(DriverLicence)
+class DriverLicenceAdmin(ModelAdmin):
+    list_display = ('id', 'user', 'number', 'issuing_state', 'expiry_date')
+    fieldsets = (
+        ('User', { 'fields': ('user',)}),
+        ('Licence Details', { 'fields': ('number', 'issuing_state', 'expiry_date', 'image')}),
+    )
+    search_fields = ('user', 'number', 'expiry_date')
+    ordering = ('-id',)
+    
