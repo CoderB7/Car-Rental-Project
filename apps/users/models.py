@@ -1,11 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django_softdelete.models import SoftDeleteModel
 
 from apps.users.managers import UserManager
 from apps.shared.models import TimeStampedModel
 
-class User(SoftDeleteModel, AbstractUser, TimeStampedModel):
+class User(AbstractUser, TimeStampedModel):
     email = models.EmailField(unique=True, blank=False)
 
     date_of_birth = models.DateField(null=True, blank=True)
@@ -28,22 +27,6 @@ class User(SoftDeleteModel, AbstractUser, TimeStampedModel):
     class Meta:
         verbose_name = ('User')
         verbose_name_plural = ('Users')
-
-    def delete(self, strict: bool=False, *args, **kwargs):
-        super().delete(strict=strict, *args, **kwargs)
-
-        if self.email:
-            self.email = f"DELETED_{self.id}_{self.email}"
-        # if self.phone:
-            # self.phone = f"DELETED_{self.id}_{self.phone}"
-        self.save(update_fields=["email", "phone"])
-    
-    def save(self, *args, **kwargs):
-        if not self.email:
-            self.email = None
-        # if not self.phone:
-            # self.phone = None
-        super(User, self).save(*args, **kwargs)
 
 
 class DriverLicence(TimeStampedModel):

@@ -1,8 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
-from django_softdelete.models import SoftDeleteManager
 
 
-class UserManager(SoftDeleteManager, BaseUserManager):
+class UserManager(BaseUserManager):
     use_in_migrations = True # manager is included in migration files
     
     def create_user(self, email, password=None, **extra_fields):
