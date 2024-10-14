@@ -13,7 +13,6 @@ class CarAdmin(ModelAdmin):
         ("Car Interior", {"fields": ("doors", "seats")}),
     )
     list_display = ("id", "license_plate", "name", "type", "rating", "price") 
-    list_display_links = ("id", "brand")
     list_filter = ("type", "fuel_type", "transmission")
     search_fields = ("name", "year", "brand")
     ordering = ("-id", "rating")

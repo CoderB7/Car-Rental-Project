@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 from apps.users.managers import UserManager
 from apps.shared.models import TimeStampedModel
+from apps.cars.models import Car
 
 class User(AbstractUser, TimeStampedModel):
     email = models.EmailField(unique=True, blank=False)
@@ -43,3 +44,17 @@ class DriverLicence(TimeStampedModel):
     class Meta:
         verbose_name = ('Driver Licence')
         verbose_name_plural = ('Driver Licences')
+
+
+class Review(TimeStampedModel):
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='review')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='review')
+    rating = models.DecimalField(max_digits=2, decimal_places=1)
+    comment = models.TextField()
+
+    def __str__(self):
+        return f'Review by {self.user.email} for {self.car.license_plate}'
+
+    class Meta:
+        verbose_name = ('Review')
+        verbose_name_plural = ('Reviews')
