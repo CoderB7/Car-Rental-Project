@@ -1,11 +1,11 @@
 from django.db import models
 
-from apps.shared.models import TimeStampedModel
+from apps.shared.models import BaseModel
 from apps.users.models import User
 from apps.cars.models import Car
 
 
-class RentHistory(TimeStampedModel):
+class RentHistory(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rent_history')
     car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='rent_history')
     rental_start = models.DateField()

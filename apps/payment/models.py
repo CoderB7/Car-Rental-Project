@@ -1,10 +1,10 @@
 from django.db import models
 
-from apps.shared.models import TimeStampedModel
+from apps.shared.models import BaseModel
 from apps.users.models import User
 from apps.rent.models import RentHistory
 
-class Card(TimeStampedModel):
+class Card(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cards')
     number = models.CharField(max_length=16)
     expiry_date = models.CharField(max_length=5)
@@ -18,7 +18,7 @@ class Card(TimeStampedModel):
         verbose_name_plural = ('Cards')
 
 
-class Transaction(TimeStampedModel):
+class Transaction(BaseModel):
     class PaymentStatusChoices(models.TextChoices):
         PENDING = ('pending', 'Pending') # 0->database, 1->for user
         COMPLETED = ('completed', 'Completed')

@@ -1,8 +1,8 @@
 from django.db import models
 
-from apps.shared.models import TimeStampedModel
+from apps.shared.models import BaseModel
 
-class Brand(TimeStampedModel):
+class Brand(BaseModel):
     name = models.CharField(max_length=64, unique=True)
     origin = models.CharField(max_length=64, null=True, blank=True)
     logo = models.ImageField(upload_to='brands/', null=True, blank=True)
@@ -11,12 +11,16 @@ class Brand(TimeStampedModel):
     def __str__(self):
         return self.name
     
+    # def save(*args, **kwargs):
+    #     if self.logo:
+            
+    
     class Meta:
         verbose_name = ('Brand')
         verbose_name_plural = ('Brands')
 
 
-class Car(TimeStampedModel):
+class Car(BaseModel):
     class TransmissionChoices(models.TextChoices):
         MANUAL = ('manual', 'Manual') # 0->database, 1->for user
         AUTOMATIC = ('automatic', 'Automatic')
