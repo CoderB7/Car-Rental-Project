@@ -16,7 +16,7 @@ class RentHistoy(TimeStampedModel):
     agreement_signed = models.BooleanField(default=False) # offerta
     
     def __str__(self):
-        return f"Rental by {self.user.email} for {self.car} from {self.rental_start} to {self.rental_end}"
+        return f"Rental by {self.user.email} for {self.car.license_plate} from {self.rental_start} to {self.rental_end}"
 
     class Meta:
         verbose_name = ('Rent History')

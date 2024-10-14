@@ -8,11 +8,11 @@ from .models import Car, Brand
 class CarAdmin(ModelAdmin):
     fieldsets = (
         ("Car Model", {"fields": ("name", "brand", "type")}),#
-        ("Car Info", {"fields": ("transmission", "year" "mileage", "fuel_type", "rating", "price")}),
+        ("Car Info", {"fields": ("license_plate", "transmission", "year" "mileage", "fuel_type", "rating", "price")}),
         ("Car Exterior", {"fields": ("color", "image")}),
         ("Car Interior", {"fields": ("doors", "seats")}),
     )
-    list_display = ("id", "name", "brand", "type", "rating", "price") 
+    list_display = ("id", "license_plate", "name", "type", "rating", "price") 
     list_display_links = ("id", "brand")
     list_filter = ("type", "fuel_type", "transmission")
     search_fields = ("name", "year", "brand")

@@ -35,6 +35,7 @@ class Car(TimeStampedModel):
         PICKUP_TRUCK = ('pickup_truck', 'Pickup Truck')
         LIMOUSINE = ('limuosine', 'Limousine')
 
+    license_plate = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=64)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, related_name='car')
     transmission = models.CharField(
