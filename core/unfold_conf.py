@@ -156,29 +156,24 @@ UNFOLD = {
                         "link": reverse_lazy("admin:rent_renthistory_changelist"),
                     },
                 ]
-            }
+            }, 
             # Common
-            # {
-            #     "title": _("Common"),
-            #     "separator": True,
-            #     "items": [
-            #         {
-            #             "title": _("FAQ"),
-            #             "icon": "help_center", 
-            #             "link": reverse_lazy("admin:common_faq_changelist"), 
-            #         },
-            #         {
-            #             "title": _("Plumber Application"),
-            #             "icon": "engineering",
-            #             "link": reverse_lazy("admin:common_plumberapplicationform_changelist"),
-            #         },
-            #         {
-            #             "title": _("Static Page"),
-            #             "icon": "pages",
-            #             "link": reverse_lazy("admin:common_staticpage_changelist"),
-            #         },
-            #     ]
-            # },
+            {
+                "title": _("Common"),
+                "separator": True,
+                "items": [
+                    # {
+                    #     "title": _("FAQ"),
+                    #     "icon": "help_center", 
+                    #     "link": reverse_lazy("admin:common_faq_changelist"), 
+                    # },
+                    {
+                        "title": _("Review"),
+                        "icon": "engineering",
+                        "link": reverse_lazy("admin:users_review_changelist"),
+                    },
+                ]
+            },
         ],
     },
 }

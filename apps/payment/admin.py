@@ -19,12 +19,12 @@ class CardAdmin(ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(ModelAdmin):
     fieldsets = (
-        (None, {"fields": ("user", )}), # add rental
+        (None, {"fields": ("user", "rental")}), 
         ("Transaction info", {"fields": ("amount", "payment_date", "payment_method", "transaction_id", "status")}),
         ("Card info", {"fields": ("currency", "card")}),
     )
-    list_display = ("id", "user", "amount", "payment_date", "status") # add rental
-    list_display_links = ("id", "user",) # add rental
+    list_display = ("id", "user", "rental", "amount", "payment_date", "status") # add rental
+    list_display_links = ("id", "user", "rental") 
     list_filter = ("currency", )
     search_fields = ("user", "transaction_id",)
     ordering = ("-id",) # descending order
