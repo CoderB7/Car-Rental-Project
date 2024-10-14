@@ -109,9 +109,9 @@ UNFOLD = {
                     },
                 ]
             },
-            # Car
+            # Cars
             {
-                "title": _("Car"),
+                "title": _("Cars"),
                 "separator": True,
                 "items": [
                     {
@@ -121,7 +121,30 @@ UNFOLD = {
                     },
                 ]
             },
-            
+            # Card
+            {
+                "title": _("Cards"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Card"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:payment_card_changelist"),
+                    },
+                ]
+            },
+            # Transactions
+            {
+                "title": _("Transactions"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Transaction"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:payment_transaction_changelist"),
+                    },
+                ]
+            },
             # Common
             # {
             #     "title": _("Common"),
