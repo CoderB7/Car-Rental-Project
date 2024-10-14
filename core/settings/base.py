@@ -50,6 +50,7 @@ CUSTOM_APPS = [
     "apps.shared",
     "apps.payment",
     "apps.cars",
+    "apps.rent",
 ]
 
 THIRD_PARTY_APPS = [

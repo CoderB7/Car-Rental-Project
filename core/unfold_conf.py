@@ -145,6 +145,18 @@ UNFOLD = {
                     },
                 ]
             },
+            # Rent History
+            {
+                "title": _("Rent History"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Rent History"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:rent_renthistory_changelist"),
+                    },
+                ]
+            }
             # Common
             # {
             #     "title": _("Common"),
