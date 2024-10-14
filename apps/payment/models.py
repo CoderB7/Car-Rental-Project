@@ -2,7 +2,7 @@ from django.db import models
 
 from apps.shared.models import TimeStampedModel
 from apps.users.models import User
-from apps.rent.models import RentHistoy
+from apps.rent.models import RentHistory
 
 class Card(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cards')
@@ -25,7 +25,7 @@ class Transaction(TimeStampedModel):
         FAILED = ('failed', 'Failed')
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
-    rental = models.ForeignKey(RentHistoy, on_delete=models.CASCADE, related_name='transactions')
+    rental = models.ForeignKey(RentHistory, on_delete=models.CASCADE, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=50)

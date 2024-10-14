@@ -2,10 +2,10 @@ from django.contrib import admin
 
 from unfold.admin import ModelAdmin
 
-from .models import RentHistoy
+from .models import RentHistory
 
 
-@admin.register(RentHistoy)
+@admin.register(RentHistory)
 class RentHistoryAdmin(ModelAdmin):
     fieldsets = (
         (None, {"fields": ("user", "car")}),

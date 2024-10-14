@@ -97,33 +97,27 @@ UNFOLD = {
                     }
                 ]
             },
-            # Brand
-            {
-                "title": _("Brand"),
-                "separator": True,
-                "items": [
-                    {
-                        "title": _("Brand"),
-                        "icon": "home_repair_service",
-                        "link": reverse_lazy("admin:car_brand_changelist"),
-                    },
-                ]
-            },
-            # Cars
+            # Car and Brand
             {
                 "title": _("Cars"),
                 "separator": True,
                 "items": [
                     {
+                        "title": _("Brand"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:cars_brand_changelist"),
+                    },
+                    {
                         "title": _("Car"),
                         "icon": "home_repair_service",
-                        "link": reverse_lazy("admin:car_car_changelist"),
+                        "link": reverse_lazy("admin:cars_car_changelist"),
                     },
+
                 ]
             },
-            # Card
+            # Payment
             {
-                "title": _("Cards"),
+                "title": _("Payments"),
                 "separator": True,
                 "items": [
                     {
@@ -131,13 +125,6 @@ UNFOLD = {
                         "icon": "home_repair_service",
                         "link": reverse_lazy("admin:payment_card_changelist"),
                     },
-                ]
-            },
-            # Transactions
-            {
-                "title": _("Transactions"),
-                "separator": True,
-                "items": [
                     {
                         "title": _("Transaction"),
                         "icon": "home_repair_service",
