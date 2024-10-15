@@ -37,7 +37,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     search_fields = ("email", "first_name", "last_name")
     filter_horizontal = ("groups", "user_permissions")
     ordering = ("-id",)
-    readonly_fields = ("last_login", "date_joined", "created_at", "updated_at")
+    # readonly_fields = ("last_login", "date_joined", "created_at", "updated_at")
 
 
 @admin.register(Group)

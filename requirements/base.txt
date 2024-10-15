@@ -8,4 +8,6 @@ django-rosetta==0.10.1
 # django-soft-delete==1.0.14
 django-unfold==0.39.0
 pillow==10.4.0
+cryptography==43.0.1
+psycopg2==2.9.9 
 
