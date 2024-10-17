@@ -10,4 +10,7 @@ django-unfold==0.39.0
 pillow==10.4.0
 cryptography==43.0.1
 psycopg2==2.9.9 
+PyJWT==2.9.0
+django-cors-headers==4.4.0
+django-filter==24.3
 

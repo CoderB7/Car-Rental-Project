@@ -16,6 +16,8 @@ class User(AbstractUser, BaseModel):
     passport_number = models.CharField(max_length=64)
     passport_file = models.FileField(upload_to='user/passports/', blank=True, null=True)
 
+    username = None
+
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []

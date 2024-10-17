@@ -8,6 +8,7 @@ from .schema import swagger_urlpatterns
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('rosetta/', include('rosetta.urls')),
+    path('api/users/', include('apps.users.urls')),
 ]
 
 urlpatterns += swagger_urlpatterns

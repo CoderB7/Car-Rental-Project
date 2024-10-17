@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
+import core.utils
 import environ
 
 from pathlib import Path
@@ -59,10 +60,14 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "drf_yasg",
     "rosetta",
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "core.authentication.CustomJWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        ),
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -76,6 +81,7 @@ INSTALLED_APPS = DJANGO_APPS + CUSTOM_APPS + THIRD_PARTY_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -168,3 +174,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ###
 # Custom User model
 AUTH_USER_MODEL = "users.User"
+
+CORS_ORIGIN_ALLOW_ALL = True # ?
+CORS_ALLOW_CREDENTIALS = True # ?
+
+# Email
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+# CONSTANTS
+ENCRYPTION_KEY=os.getenv('ENCRYPTION_KEY').encode()
+
+JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+JWT_ACCESS_TOKEN_SECRET=os.getenv('JWT_ACCESS_TOKEN_SECRET')
+JWT_REFRESH_TOKEN_SECRET=os.getenv('JWT_REFRESH_TOKEN_SECRET')
+
+REFRESH_TOKEN_EXPIRATION_DAYS=os.getenv('REFRESH_TOKEN_EXPIRATION_DAYS')
+ACCESS_TOKEN_EXPIRATION_MINUTES=os.getenv('ACCESS_TOKEN_EXPIRATION_MINUTES')
