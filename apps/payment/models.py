@@ -13,9 +13,9 @@ from django.conf import settings
 class Card(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cards')
     four_digits = models.CharField(max_length=4)
-    expiry_date = models.CharField(max_length=5)
-    hashed_cvv = models.CharField(max_length=64)
-    encrypted_number = models.BinaryField(default=None)
+    expiry_date = models.CharField(max_length=5) # midi
+    hashed_cvv = models.CharField(max_length=64) # midi
+    encrypted_number = models.BinaryField(default=None) # saqlanmidi
 
     full_number = False
     cvv = False
