@@ -22,7 +22,7 @@ class RegistrationView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
+            email = serializer.validated_data.get('email', None)
             password = serializer.validated_data['password']
             if User.objects.filter(email=email).exists():
                 return Response({'error': 'Email already registered.'}, status=status.HTTP_400_BAD_REQUEST)
