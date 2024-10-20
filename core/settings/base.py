@@ -172,6 +172,22 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ###
+
+# CACHES
+CACHES = {
+    'default': {
+        "BACKEND": 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6380/1',  # Use the appropriate Redis server URL
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# This is to ensure Django sessions are stored in Redis
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
 # Custom User model
 AUTH_USER_MODEL = "users.User"
 
@@ -179,19 +195,21 @@ CORS_ORIGIN_ALLOW_ALL = True # ?
 CORS_ALLOW_CREDENTIALS = True # ?
 
 # Email
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST = env.str("EMAIL_HOST")
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = env.str("EMAIL_PORT")
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 # CONSTANTS
-ENCRYPTION_KEY=os.getenv('ENCRYPTION_KEY').encode()
+ENCRYPTION_KEY=env.str('ENCRYPTION_KEY').encode()
 
-JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
-JWT_ACCESS_TOKEN_SECRET=os.getenv('JWT_ACCESS_TOKEN_SECRET')
-JWT_REFRESH_TOKEN_SECRET=os.getenv('JWT_REFRESH_TOKEN_SECRET')
+JWT_ALGORITHM = env.str('JWT_ALGORITHM')
+JWT_ACCESS_TOKEN_SECRET=env.str('JWT_ACCESS_TOKEN_SECRET')
+JWT_REFRESH_TOKEN_SECRET=env.str('JWT_REFRESH_TOKEN_SECRET')
 
-REFRESH_TOKEN_EXPIRATION_DAYS=os.getenv('REFRESH_TOKEN_EXPIRATION_DAYS')
-ACCESS_TOKEN_EXPIRATION_MINUTES=os.getenv('ACCESS_TOKEN_EXPIRATION_MINUTES')
+REFRESH_TOKEN_EXPIRATION_DAYS=env.str('REFRESH_TOKEN_EXPIRATION_DAYS')
+ACCESS_TOKEN_EXPIRATION_MINUTES=env.str('ACCESS_TOKEN_EXPIRATION_MINUTES')
+
+OTP_LIFETIME = env.str("OTP_LIFETIME")
