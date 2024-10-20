@@ -12,27 +12,39 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer, OTPVerificationSerializer
+from .serializers import SendVerificationSerializer, CheckVerificationSerializer
 from ..models import User
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
 
 OTP_LIFETIME=120
 
-# Create your views here.
-class RegistrationView(APIView):
+
+class SendVerification(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data.get('email', None)
-            password = serializer.validated_data['password']
-            if User.objects.filter(email=email).exists():
-                return Response({'error': 'Email already registered.'}, status=status.HTTP_400_BAD_REQUEST)
-            otp = generate_otp()
-            while not is_otp_unique(email, otp):
-                otp = generate_otp()
-            cache.set(f"{email}_otp", otp, timeout=OTP_LIFETIME)  # Store OTP in cache for 5 minutes
-            send_otp_via_email(email, otp)  # Send OTP via email
-            return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = SendVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
+
+
+class CheckVerification(APIView):
+    def post(self, request):
+        serializer = CheckVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'message': 'OTP verified successfully, email verified.'}, status=status.HTTP_200_OK)
+
+class RegistrationView(APIView):
+    def post(self, reuqest):
+        serializer = UserSerializer(data=reuqest.data)
+        serializer.is_valid(raise_exception=True)
+        access_token = serializer.validated_data['access_token']
+        refresh_token = serializer.validated_data['refresh_token']
+
+        response = Response()
+        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
+        response.data = {
+            'access_token': access_token,
+        }
+        return response
 
 
 class UserProfileView(generics.RetrieveAPIView):
@@ -112,38 +124,6 @@ class RefreshTokenView(APIView):
         except jwt.InvalidTokenError:
             return Response({'error': 'Invalid refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class OTPVerificationView(APIView):
-    def post(self, request):
-        serializer = OTPVerificationSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            otp = serializer.validated_data['otp']
-            cached_otp = cache.get(f'{email}_otp')
-            if cached_otp and otp == cached_otp:
-                # OTP matched, user is authenticated
-                password = request.data.get('password')
-                if not password:
-                    return Response({'error': 'Password is required.'}, status=status.HTTP_400_BAD_REQUEST)
-                user = User.objects.create_user(email=email, password=password)  
-                payload = {
-                    'user_id': user.id,
-                    'iat': datetime.datetime.now(datetime.timezone.utc)
-                }
-                # Convert datetime to Unix timestamps
-                payload['iat'] = int(payload['iat'].timestamp())
-                access_token, refresh_token = generate_jwt_token(payload)
-                cache.delete(f"{email}_otp") # Remove OTP from cache
-
-                response = Response()
-                response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
-                response.data = {
-                    'access_token': access_token,
-                }
-                return response
-            return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
 
 
