@@ -16,8 +16,6 @@ from .serializers import SendVerificationSerializer, CheckVerificationSerializer
 from ..models import User
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
 
-OTP_LIFETIME=120
-
 
 class SendVerification(APIView):
     def post(self, request):

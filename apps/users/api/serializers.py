@@ -68,18 +68,20 @@ class UserSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=150)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    date_of_birth = serializers.DateField(required=False)
     
     def validate_password(self, password):
         if not password:
             raise serializers.ValidationError('Password is required')
         return password
 
-    def create_user_and_tokens(self, email, password, first_name, last_name):
+    def create_user_and_tokens(self, email, password, first_name, last_name, dob):
         user = User.objects.create_user(
             email, 
             password, 
             first_name=first_name, 
             last_name=last_name,
+            date_of_birth=dob,
         )
         payload = {
             'user_id': user.id,
@@ -95,13 +97,14 @@ class UserSerializer(serializers.Serializer):
         first_name = attrs.get('first_name', None)
         last_name = attrs.get('last_name', None)
         password = attrs.get('password', None)
+        date_of_birth = attrs.get('date_of_birth', None)
 
         is_email_valid = cache.get(f'{email}_verify')
         if not is_email_valid:
             raise serializers.ValidationError('Email is not valid')
         
         self.validate_password(password)
-        user, access_token, refresh_token = self.create_user_and_tokens(email, password, first_name, last_name)
+        user, access_token, refresh_token = self.create_user_and_tokens(email, password, first_name, last_name, date_of_birth)
         attrs['user'] = user
         attrs['access_token'] = access_token
         attrs['refresh_token'] = refresh_token
@@ -116,8 +119,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "email",
         )
     
-    
-class OTPVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    otp = serializers.CharField(max_length=6)
-    
+
