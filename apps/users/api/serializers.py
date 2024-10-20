@@ -4,14 +4,10 @@ from rest_framework import serializers
 
 from django.core.cache import cache
 from django.conf import settings
+from django.contrib.auth import authenticate
 
 from ..models import User
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
-
-
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
 
 
 class SendVerificationSerializer(serializers.Serializer):
@@ -53,13 +49,9 @@ class CheckVerificationSerializer(serializers.Serializer):
     
     def validate(self, data):
         email =  data.get('email', None)
-
-       
         self.email_verify = True
-        
         cache.delete(f"{email}")
         cache.set(f"{email}_verify", self.email_verify, timeout=float(settings.OTP_LIFETIME))
-
         return data
 
 
@@ -118,5 +110,35 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id",
             "email",
         )
+    
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def create_tokens(self, user):
+        payload = {
+            'user_id': user.id,
+            'iat': datetime.datetime.now(datetime.timezone.utc)
+        }
+        # Convert datetime to Unix timestamps
+        payload['iat'] = int(payload['iat'].timestamp())
+        access_token, refresh_token = generate_jwt_token(payload)
+        return user, access_token, refresh_token
+
+    def validate(self, attrs):
+        email = attrs.get('email', None)
+        password = attrs.get('password', None)
+
+        user = authenticate(username=email, password=password)
+        if user is not None:
+            user, access_token, refresh_token = self.create_tokens(user)
+            attrs['user'] = user
+            attrs['access_token'] = access_token
+            attrs['refresh_token'] = refresh_token
+        else:
+            raise serializers.ValidationError('Invalid email or password.')
+
+        return attrs
     
 
