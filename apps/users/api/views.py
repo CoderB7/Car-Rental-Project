@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
-from .serializers import SendVerificationSerializer, CheckVerificationSerializer
+from .serializers import SendVerificationSerializer, CheckVerificationSerializer, RefreshTokenSerializer
 from ..models import User
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
 from apps.shared.redis_client import (
@@ -90,33 +90,16 @@ class LoginView(APIView):
         
 class RefreshTokenView(APIView):
     def post(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if not refresh_token:
-            return Response({'error': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        refresh_token = request.COOKIES.get('refresh_token', None)
+        serializer = RefreshTokenSerializer(data={'refresh_token': refresh_token})
+        serializer.is_valid(raise_exception=True)
+        new_access_token, new_refresh_token = serializer.create(serializer.validated_data)
 
-        try:
-            payload = decrypt_refresh_token(refresh_token)
-            user_id = payload['payload']['user_id']
-            new_payload = {
-                'user_id': user_id,
-                'iat': datetime.datetime.now(datetime.timezone.utc)
-            }
-            # Convert datetime to Unix timestamps
-            new_payload['iat'] = int(payload['iat'].timestamp())
-            new_access_token, new_refresh_token = generate_jwt_token(new_payload)
-            
-            response = Response()
-            response.set_cookie(key='refresh_token', value=new_refresh_token, httponly=True, secure=True, samesite='Strict')
-            response.data = {
-                'access_token': new_access_token,
-            }
-            response.status_code = status.HTTP_200_OK
-            return response
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Refresh token has expired.'}, status=status.HTTP_400_BAD_REQUEST)
-        except jwt.InvalidTokenError:
-            return Response({'error': 'Invalid refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
+        response = Response()
+        response.set_cookie(key='refresh_token', value=new_refresh_token, httponly=True, secure=True, samesite='Strict')
+        response.data = {
+            'access_token': new_access_token,
+        }
+        response.status_code = status.HTTP_200_OK
+        return response
 

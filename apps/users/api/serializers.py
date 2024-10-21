@@ -1,4 +1,5 @@
 import datetime
+import jwt
 
 from rest_framework import serializers
 
@@ -14,6 +15,7 @@ from apps.shared.redis_client import (
     delete_otp,
     set_verify, 
     get_verify,
+    is_token_blacklisted,
 )
 
 class SendVerificationSerializer(serializers.Serializer):
@@ -98,7 +100,6 @@ class UserSerializer(serializers.Serializer):
         if not is_email_valid:
             raise serializers.ValidationError('Email is not valid')
         
-        self.validate_password(password)
         user, access_token, refresh_token = self.create_user_and_tokens(email, password, first_name, last_name, date_of_birth)
         attrs['user'] = user
         attrs['access_token'] = access_token
@@ -143,3 +144,33 @@ class UserProfileSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=150)
     date_of_birth = serializers.DateField()
 
+
+class RefreshTokenSerializer(serializers.Serializer):
+    access_token = serializers.CharField(required=False)
+    refresh_token = serializers.CharField(required=True)
+
+    def validate_refresh_token(self, value):
+        if not value:
+            raise serializers.ValidationError('Refresh token is required')
+        if is_token_blacklisted(value):
+            raise serializers.ValidationError('Refresh token has been blacklisted')
+        try:
+            payload = decrypt_refresh_token(value)
+            user_id = payload['payload']['user_id']
+            return user_id
+        except jwt.ExpiredSignatureError:
+            raise serializers.ValidationError('Refresh token has expired.')
+        except jwt.InvalidTokenError:
+            raise serializers.ValidationError('Invalid refresh token.')
+
+    def create(self, validated_data):
+        user_id = validated_data['refresh_token']
+        new_payload = {
+            'user_id': user_id,
+            'iat': datetime.datetime.now(datetime.timezone.utc)
+        }
+         # Convert datetime to Unix timestamps
+        new_payload['iat'] = int(new_payload['iat'].timestamp())
+        new_access_token, new_refresh_token = generate_jwt_token(new_payload)
+
+        return new_access_token, new_refresh_token
