@@ -54,16 +54,15 @@ class CheckVerificationSerializer(serializers.Serializer):
         if not cached_otp:
             raise serializers.ValidationError('OTP expired or not found')
         if value != cached_otp:
-            print('hello')
             raise serializers.ValidationError('Invalid OTP')
-        return True
+        return value
     
-    def validate(self, data):
-        email =  data.get('email', None)
-        self.email_verify = True
+    def create(self, validated_data):
+        email =  validated_data.get('email', None)
+        self.email_verify = 'True'
         delete_otp(email)
         set_verify(email, self.email_verify)
-        return data
+        return validated_data
 
 
 class UserSerializer(serializers.Serializer):
@@ -102,7 +101,7 @@ class UserSerializer(serializers.Serializer):
         password = attrs.get('password', None)
         date_of_birth = attrs.get('date_of_birth', None)
         is_email_valid = get_verify(email)
-        if not is_email_valid:
+        if is_email_valid == 'False':
             raise serializers.ValidationError('Email is not valid')
         
         user, access_token, refresh_token = self.create_user_and_tokens(email, password, first_name, last_name, date_of_birth)

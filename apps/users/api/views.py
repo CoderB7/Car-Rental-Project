@@ -24,11 +24,15 @@ class SendVerification(generics.CreateAPIView):
         return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
 
 
-class CheckVerification(APIView):
-    def post(self, request):
-        serializer = CheckVerificationSerializer(data=request.data)
+class CheckVerification(generics.CreateAPIView):
+    serializer_class = CheckVerificationSerializer
+    
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({'message': 'OTP verified successfully, email verified.'}, status=status.HTTP_200_OK)
+
 
 class RegistrationView(APIView):
     def post(self, reuqest):
