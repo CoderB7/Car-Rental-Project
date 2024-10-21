@@ -45,13 +45,13 @@ class RegistrationView(APIView):
         return response
 
 
-class UserProfileView(generics.RetrieveAPIView):
-    serializer_class = UserProfileSerializer
+class UserProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
-    
+    def get(self, request):
+        user = request.user
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
 

@@ -102,14 +102,6 @@ class UserSerializer(serializers.Serializer):
         attrs['refresh_token'] = refresh_token
         
         return attrs
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "email",
-        )
     
 
 class LoginSerializer(serializers.Serializer):
@@ -141,4 +133,10 @@ class LoginSerializer(serializers.Serializer):
 
         return attrs
     
+
+class UserProfileSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    date_of_birth = serializers.DateField()
 
