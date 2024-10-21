@@ -26,15 +26,13 @@ class SendVerificationSerializer(serializers.Serializer):
     
     def validate(self, data):
         email = data.get('email', None)
-
         otp = generate_otp()
+
         while not is_otp_unique(email, otp):
             otp = generate_otp()
         
-        # cache.set(f"{email}", otp, timeout=600)
         set_otp(email, otp)
         send_otp_via_email(email, otp)
-
         return data
 
 
@@ -45,7 +43,6 @@ class CheckVerificationSerializer(serializers.Serializer):
     
     def validate_otp(self, value):
         email = self.initial_data.get('email', None)
-        # cached_otp = cache.get(f'{email}')
         cached_otp = get_otp(email)
         if not cached_otp:
             raise serializers.ValidationError('OTP expired or not found')
@@ -58,8 +55,6 @@ class CheckVerificationSerializer(serializers.Serializer):
         email =  data.get('email', None)
         self.email_verify = True
         delete_otp(email)
-        # cache.delete(f"{email}")
-        # cache.set(f"{email}_verify", self.email_verify, timeout=float(settings.OTP_LIFETIME))
         set_verify(email, self.email_verify)
         return data
 
@@ -99,8 +94,6 @@ class UserSerializer(serializers.Serializer):
         last_name = attrs.get('last_name', None)
         password = attrs.get('password', None)
         date_of_birth = attrs.get('date_of_birth', None)
-
-        # is_email_valid = cache.get(f'{email}_verify')
         is_email_valid = get_verify(email)
         if not is_email_valid:
             raise serializers.ValidationError('Email is not valid')

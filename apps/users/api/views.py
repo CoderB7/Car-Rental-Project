@@ -15,7 +15,10 @@ from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 from .serializers import SendVerificationSerializer, CheckVerificationSerializer
 from ..models import User
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
-
+from apps.shared.redis_client import (
+    blacklist_token, 
+    is_token_blacklisted,
+)
 
 class SendVerification(APIView):
     def post(self, request):
@@ -54,14 +57,21 @@ class UserProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
-
     def post(self, request):
-        response = Response()
-        response.delete_cookie('refresh_token')
-        response.data = {
-            'message': 'success',
-        }
-        return response
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            try:
+                blacklist_token(refresh_token)
+                response = Response()
+                response.delete_cookie('refresh_token')
+                response.data = {
+                    'message': 'Logged out successfully',
+                }
+                response.status_code = status.HTTP_200_OK
+                return response
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Refresh token not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
     def post(self, request):
