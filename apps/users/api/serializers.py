@@ -8,7 +8,13 @@ from django.contrib.auth import authenticate
 
 from ..models import User
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
-
+from apps.shared.redis_client import (
+    set_otp, 
+    get_otp, 
+    delete_otp,
+    set_verify, 
+    get_verify,
+)
 
 class SendVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -25,7 +31,8 @@ class SendVerificationSerializer(serializers.Serializer):
         while not is_otp_unique(email, otp):
             otp = generate_otp()
         
-        cache.set(f"{email}", otp, timeout=600)
+        # cache.set(f"{email}", otp, timeout=600)
+        set_otp(email, otp)
         send_otp_via_email(email, otp)
 
         return data
@@ -38,8 +45,8 @@ class CheckVerificationSerializer(serializers.Serializer):
     
     def validate_otp(self, value):
         email = self.initial_data.get('email', None)
-        cached_otp = cache.get(f'{email}')
-        print(type(cached_otp))
+        # cached_otp = cache.get(f'{email}')
+        cached_otp = get_otp(email)
         if not cached_otp:
             raise serializers.ValidationError('OTP expired or not found')
         if value != cached_otp:
@@ -50,8 +57,10 @@ class CheckVerificationSerializer(serializers.Serializer):
     def validate(self, data):
         email =  data.get('email', None)
         self.email_verify = True
-        cache.delete(f"{email}")
-        cache.set(f"{email}_verify", self.email_verify, timeout=float(settings.OTP_LIFETIME))
+        delete_otp(email)
+        # cache.delete(f"{email}")
+        # cache.set(f"{email}_verify", self.email_verify, timeout=float(settings.OTP_LIFETIME))
+        set_verify(email, self.email_verify)
         return data
 
 
@@ -91,7 +100,8 @@ class UserSerializer(serializers.Serializer):
         password = attrs.get('password', None)
         date_of_birth = attrs.get('date_of_birth', None)
 
-        is_email_valid = cache.get(f'{email}_verify')
+        # is_email_valid = cache.get(f'{email}_verify')
+        is_email_valid = get_verify(email)
         if not is_email_valid:
             raise serializers.ValidationError('Email is not valid')
         
