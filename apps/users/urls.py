@@ -14,7 +14,7 @@ urlpatterns = [
     path('send_verification/', SendVerification.as_view(), name='send_verification'),
     path('check_verification/', CheckVerification.as_view(), name='check_verification'),
     path('register/', RegistrationView.as_view(), name='register'),
-
+    
     path('login/', LoginView.as_view(), name='login'),
     path('login/refresh/', RefreshTokenView.as_view(), name='token_refresh'),
     

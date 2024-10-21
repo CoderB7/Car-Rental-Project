@@ -19,15 +19,20 @@ from apps.shared.redis_client import (
 )
 
 class SendVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    email = serializers.EmailField(required=True)
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email already registered")
+    def validate_email(self, value): # action forgot password
+        action = self.context.get('action')
+        if action == 'register':
+            if User.objects.filter(email=value).exists():
+                raise serializers.ValidationError("Email already registered")
+        elif action == 'forgot_password':
+            if not User.objects.filter(email=value).exists():
+                raise serializers.ValidationError("Email not registered")
         return value
     
-    def validate(self, data):
-        email = data.get('email', None)
+    def create(self, validated_data):
+        email = validated_data.get('email', None)
         otp = generate_otp()
 
         while not is_otp_unique(email, otp):
@@ -35,7 +40,7 @@ class SendVerificationSerializer(serializers.Serializer):
         
         set_otp(email, otp)
         send_otp_via_email(email, otp)
-        return data
+        return validated_data
 
 
 class CheckVerificationSerializer(serializers.Serializer):
@@ -73,7 +78,7 @@ class UserSerializer(serializers.Serializer):
             raise serializers.ValidationError('Password is required')
         return password
 
-    def create_user_and_tokens(self, email, password, first_name, last_name, dob):
+    def create(self, email, password, first_name, last_name, dob):
         user = User.objects.create_user(
             email, 
             password, 

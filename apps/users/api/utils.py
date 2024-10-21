@@ -59,7 +59,6 @@ def generate_otp():
     return str(random.randint(100000, 999999))
 
 def is_otp_unique(email, otp):
-    print(cache.get(f"{email}_otp"))
     return cache.get(f"{email}_otp") != otp
 
 def send_otp_via_email(email, otp):

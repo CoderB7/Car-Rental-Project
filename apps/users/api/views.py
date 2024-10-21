@@ -1,11 +1,6 @@
 import jwt
 import datetime
 
-from django.shortcuts import render
-from django.core.cache import cache
-from django.conf import settings
-from django.contrib.auth import authenticate
-
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,17 +8,19 @@ from rest_framework.exceptions import AuthenticationFailed
 
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 from .serializers import SendVerificationSerializer, CheckVerificationSerializer, RefreshTokenSerializer
-from ..models import User
-from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
-from apps.shared.redis_client import (
-    blacklist_token, 
-    is_token_blacklisted,
-)
+from apps.shared.redis_client import blacklist_token
 
-class SendVerification(APIView):
-    def post(self, request):
-        serializer = SendVerificationSerializer(data=request.data)
+
+class SendVerification(generics.CreateAPIView):
+    serializer_class = SendVerificationSerializer
+
+    def create(self, request):
+        context = {
+            'action': request.data.get('action', None)
+        }
+        serializer = self.serializer_class(data=request.data, context=context) # context
         serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
 
 
@@ -37,6 +34,7 @@ class RegistrationView(APIView):
     def post(self, reuqest):
         serializer = UserSerializer(data=reuqest.data)
         serializer.is_valid(raise_exception=True)
+        user, access_token, refresh_token = serializer.save()
         access_token = serializer.validated_data['access_token']
         refresh_token = serializer.validated_data['refresh_token']
 
