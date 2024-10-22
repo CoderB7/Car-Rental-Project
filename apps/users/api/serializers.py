@@ -169,3 +169,4 @@ class RefreshTokenSerializer(serializers.Serializer):
         new_access_token, new_refresh_token = generate_jwt_token(new_payload)
 
         return new_access_token, new_refresh_token
+    
