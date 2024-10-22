@@ -77,7 +77,13 @@ class UserSerializer(serializers.Serializer):
             raise serializers.ValidationError('Password is required')
         return password
 
-    def create(self, email, password, first_name, last_name, dob):
+    def create(self, validated_data):
+        email = validated_data.get('email', None)
+        password = validated_data.get('password', None)
+        first_name = validated_data.get('first_name', None)
+        last_name = validated_data.get('last_name', None)
+        dob = validated_data.get('date_of_birth', None)
+
         user = User.objects.create_user(
             email, 
             password, 
@@ -92,23 +98,13 @@ class UserSerializer(serializers.Serializer):
         # Convert datetime to Unix timestamps
         payload['iat'] = int(payload['iat'].timestamp())
         access_token, refresh_token = generate_jwt_token(payload)
-        return user, access_token, refresh_token
+        return access_token, refresh_token
 
     def validate(self, attrs):
         email = attrs.get('email', None)
-        first_name = attrs.get('first_name', None)
-        last_name = attrs.get('last_name', None)
-        password = attrs.get('password', None)
-        date_of_birth = attrs.get('date_of_birth', None)
         is_email_valid = get_verify(email)
         if is_email_valid == 'False':
             raise serializers.ValidationError('Email is not valid')
-        
-        user, access_token, refresh_token = self.create_user_and_tokens(email, password, first_name, last_name, date_of_birth)
-        attrs['user'] = user
-        attrs['access_token'] = access_token
-        attrs['refresh_token'] = refresh_token
-        
         return attrs
     
 
@@ -116,7 +112,9 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-    def create_tokens(self, user):
+    def create(self, validated_data):
+        email = validated_data.get('email', None)
+        user = User.objects.get(email=email)
         payload = {
             'user_id': user.id,
             'iat': datetime.datetime.now(datetime.timezone.utc)
@@ -124,19 +122,14 @@ class LoginSerializer(serializers.Serializer):
         # Convert datetime to Unix timestamps
         payload['iat'] = int(payload['iat'].timestamp())
         access_token, refresh_token = generate_jwt_token(payload)
-        return user, access_token, refresh_token
+        return access_token, refresh_token
 
     def validate(self, attrs):
         email = attrs.get('email', None)
         password = attrs.get('password', None)
 
         user = authenticate(username=email, password=password)
-        if user is not None:
-            user, access_token, refresh_token = self.create_tokens(user)
-            attrs['user'] = user
-            attrs['access_token'] = access_token
-            attrs['refresh_token'] = refresh_token
-        else:
+        if user is None:
             raise serializers.ValidationError('Invalid email or password.')
 
         return attrs

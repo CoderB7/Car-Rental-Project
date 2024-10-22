@@ -9,7 +9,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 from .serializers import SendVerificationSerializer, CheckVerificationSerializer, RefreshTokenSerializer
 from apps.shared.redis_client import blacklist_token
-
+from ..models import User
 
 class SendVerification(generics.CreateAPIView):
     serializer_class = SendVerificationSerializer
@@ -34,14 +34,15 @@ class CheckVerification(generics.CreateAPIView):
         return Response({'message': 'OTP verified successfully, email verified.'}, status=status.HTTP_200_OK)
 
 
-class RegistrationView(APIView):
-    def post(self, reuqest):
-        serializer = UserSerializer(data=reuqest.data)
+class RegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user, access_token, refresh_token = serializer.save()
-        access_token = serializer.validated_data['access_token']
-        refresh_token = serializer.validated_data['refresh_token']
-
+        access_token, refresh_token = serializer.save()
+        
         response = Response()
         response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
         response.data = {
@@ -50,13 +51,18 @@ class RegistrationView(APIView):
         return response
 
 
-class UserProfileView(APIView):
+class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserProfileSerializer
+    
+    def get_object(self):
+        return self.request.user
 
-    def get(self, request):
-        user = request.user
-        serializer = UserProfileSerializer(user)
+    def retrieve(self, request):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class LogoutView(APIView):
     def post(self, request):
@@ -75,13 +81,14 @@ class LogoutView(APIView):
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'error': 'Refresh token not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginView(APIView):
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        access_token = serializer.validated_data['access_token']
-        refresh_token = serializer.validated_data['refresh_token']
+class LoginView(generics.CreateAPIView):
+    serializer_class = LoginSerializer
 
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        access_token, refresh_token = serializer.save()
+        
         response = Response()
         response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
         response.data = {
@@ -90,12 +97,14 @@ class LoginView(APIView):
         return response
         
         
-class RefreshTokenView(APIView):
-    def post(self, request):
+class RefreshTokenView(generics.CreateAPIView):
+    serializer_class = RefreshTokenSerializer
+
+    def create(self, request):
         refresh_token = request.COOKIES.get('refresh_token', None)
-        serializer = RefreshTokenSerializer(data={'refresh_token': refresh_token})
+        serializer = self.get_serializer(data={'refresh_token': refresh_token})
         serializer.is_valid(raise_exception=True)
-        new_access_token, new_refresh_token = serializer.create(serializer.validated_data)
+        new_access_token, new_refresh_token = serializer.save()
 
         response = Response()
         response.set_cookie(key='refresh_token', value=new_refresh_token, httponly=True, secure=True, samesite='Strict')
