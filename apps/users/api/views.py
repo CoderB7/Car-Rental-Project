@@ -1,6 +1,7 @@
 import jwt
 import datetime
 
+from django.contrib.auth import logout
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 from .serializers import SendVerificationSerializer, CheckVerificationSerializer, RefreshTokenSerializer
 from apps.shared.redis_client import blacklist_token
-from ..models import User
+from ..models import User, BlacklistedToken
 
 class SendVerification(generics.CreateAPIView):
     serializer_class = SendVerificationSerializer
@@ -66,16 +67,18 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
 class LogoutView(APIView):
     def post(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if refresh_token:
+        refresh_token = request.COOKIES.get('refresh_token', None)
+        access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
+        if refresh_token and access_token:
             try:
-                blacklist_token(refresh_token)
+                BlacklistedToken.blacklist_token(access_token, refresh_token)
                 response = Response()
                 response.delete_cookie('refresh_token')
                 response.data = {
                     'message': 'Logged out successfully',
                 }
                 response.status_code = status.HTTP_200_OK
+                logout(request)
                 return response
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -102,6 +105,10 @@ class RefreshTokenView(generics.CreateAPIView):
 
     def create(self, request):
         refresh_token = request.COOKIES.get('refresh_token', None)
+
+        if refresh_token is None:
+            return Response({'error': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(data={'refresh_token': refresh_token})
         serializer.is_valid(raise_exception=True)
         new_access_token, new_refresh_token = serializer.save()

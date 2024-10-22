@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth import authenticate
 
-from ..models import User
+from ..models import User, BlacklistedToken
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
 from apps.shared.redis_client import (
     set_otp, 
@@ -147,9 +147,7 @@ class RefreshTokenSerializer(serializers.Serializer):
     refresh_token = serializers.CharField(required=True)
 
     def validate_refresh_token(self, value):
-        if not value:
-            raise serializers.ValidationError('Refresh token is required')
-        if is_token_blacklisted(value):
+        if BlacklistedToken.is_token_blacklisted(value):
             raise serializers.ValidationError('Refresh token has been blacklisted')
         try:
             payload = decrypt_refresh_token(value)

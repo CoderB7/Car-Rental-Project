@@ -3,9 +3,10 @@ import jwt
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from apps.users.models import User
+from apps.users.models import User, BlacklistedToken
 from apps.users.api.utils import decrypt_access_token
 from apps.shared.redis_client import is_token_blacklisted
+
 
 class CustomJWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
@@ -14,6 +15,8 @@ class CustomJWTAuthentication(BaseAuthentication):
             return None
         try:
             encrypted_jwt_token = CustomJWTAuthentication.get_the_token_from_header(auth_header)
+            if BlacklistedToken.is_token_blacklisted(access=encrypted_jwt_token, refresh=None):
+                raise AuthenticationFailed('Token is blacklisted')
             payload = decrypt_access_token(encrypted_jwt_token)['payload']
             
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):

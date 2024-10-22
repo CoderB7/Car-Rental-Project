@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Q
 
 from apps.users.managers import UserManager
 from apps.shared.models import BaseModel
 from apps.cars.models import Car
+
 
 class User(AbstractUser, BaseModel):
     email = models.EmailField(unique=True, blank=False)
@@ -49,8 +51,8 @@ class DriverLicence(BaseModel):
 
 
 class Review(BaseModel):
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='review')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='review')
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
     rating = models.DecimalField(max_digits=2, decimal_places=1)
     comment = models.TextField()
 
@@ -60,3 +62,40 @@ class Review(BaseModel):
     class Meta:
         verbose_name = ('Review')
         verbose_name_plural = ('Reviews')
+
+
+class BlacklistedToken(BaseModel):
+    access_token = models.CharField(max_length=1024, unique=True)
+    refresh_token = models.CharField(max_length=1024, unique=True)
+    blacklisted_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return self.token
+
+    @classmethod
+    def blacklist_token(cls, access, refresh):
+        """Blacklists a refresh token."""
+        if not cls.is_token_blacklisted(access, refresh):
+            cls.objects.get_or_create(access_token=access, refresh_token=refresh)
+
+    @classmethod
+    def is_token_blacklisted(cls, access, refresh):
+        """Checks if a refresh token is blacklisted."""
+        # Initialize an empty Q object
+        query = Q()
+
+        # Conditionally add access token to the query
+        if access:
+            query |= Q(access_token=access)
+
+        # Conditionally add refresh token to the query
+        if refresh:
+            query |= Q(refresh_token=refresh)
+
+        # If neither token is provided, return False
+        if not query:
+            return False
+
+        # Return whether any records match the constructed query
+        return cls.objects.filter(query).exists()
