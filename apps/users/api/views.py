@@ -65,8 +65,10 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class LogoutView(APIView):
-    def post(self, request):
+class LogoutView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
         refresh_token = request.COOKIES.get('refresh_token', None)
         access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
         if refresh_token and access_token:
@@ -78,7 +80,6 @@ class LogoutView(APIView):
                     'message': 'Logged out successfully',
                 }
                 response.status_code = status.HTTP_200_OK
-                logout(request)
                 return response
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
