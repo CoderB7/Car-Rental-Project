@@ -14,10 +14,14 @@ def delete_otp(email):
     redis_instance.delete(f"{email}")
 
 def set_verify(email, email_verify):
-    redis_instance.set(f"{email}_verify", email_verify, ex=settings.OTP_LIFETIME)
+    if email_verify:
+        redis_instance.set(f"{email}_verify", 'True', ex=settings.OTP_LIFETIME)
 
 def get_verify(email):
     return redis_instance.get(f"{email}_verify")
+
+def delete_verify(email):
+    redis_instance.delete(f"{email}_verify")
 
 def blacklist_token(token):
     redis_instance.set(token, 'blacklisted', ex=settings.JWT_REFRESH_TOKEN_EXPIRATION)

@@ -4,10 +4,16 @@ import datetime
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, NotFound
 
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
-from .serializers import SendVerificationSerializer, CheckVerificationSerializer, RefreshTokenSerializer
+from .serializers import (
+    SendVerificationSerializer, 
+    CheckVerificationSerializer, 
+    RefreshTokenSerializer,
+    PasswordResetSerializer,
+)
+
 from apps.shared.redis_client import blacklist_token
 from ..models import User, BlacklistedToken
 
@@ -120,4 +126,24 @@ class RefreshTokenView(generics.CreateAPIView):
         }
         response.status_code = status.HTTP_200_OK
         return response
+
+
+class PasswordResetView(generics.CreateAPIView):
+    serializer_class = PasswordResetSerializer
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self):
+        email = self.request.data.get('email')
+        try:
+            return User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"detail": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+    def create(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(user, serializer.validated_data)
+        return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
 
