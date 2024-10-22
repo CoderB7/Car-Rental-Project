@@ -1,44 +1,48 @@
 import jwt
 import datetime
 
-from django.shortcuts import render
-from django.core.cache import cache
-from django.conf import settings
-from django.contrib.auth import authenticate
-
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 
-from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer, OTPVerificationSerializer
-from .serializers import SendVerificationSerializer, CheckVerificationSerializer
-from ..models import User
-from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
+from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
+from .serializers import SendVerificationSerializer, CheckVerificationSerializer, RefreshTokenSerializer
+from apps.shared.redis_client import blacklist_token
+from ..models import User, BlacklistedToken
 
-OTP_LIFETIME=120
+class SendVerification(generics.CreateAPIView):
+    serializer_class = SendVerificationSerializer
 
-
-class SendVerification(APIView):
-    def post(self, request):
-        serializer = SendVerificationSerializer(data=request.data)
+    def create(self, request):
+        context = {
+            'action': request.data.get('action', None)
+        }
+        serializer = self.serializer_class(data=request.data, context=context) # context
         serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
 
 
-class CheckVerification(APIView):
-    def post(self, request):
-        serializer = CheckVerificationSerializer(data=request.data)
+class CheckVerification(generics.CreateAPIView):
+    serializer_class = CheckVerificationSerializer
+    
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({'message': 'OTP verified successfully, email verified.'}, status=status.HTTP_200_OK)
 
-class RegistrationView(APIView):
-    def post(self, reuqest):
-        serializer = UserSerializer(data=reuqest.data)
-        serializer.is_valid(raise_exception=True)
-        access_token = serializer.validated_data['access_token']
-        refresh_token = serializer.validated_data['refresh_token']
 
+class RegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        access_token, refresh_token = serializer.save()
+        
         response = Response()
         response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
         response.data = {
@@ -47,83 +51,73 @@ class RegistrationView(APIView):
         return response
 
 
-class UserProfileView(generics.RetrieveAPIView):
-    serializer_class = UserProfileSerializer
+class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-
+    serializer_class = UserProfileSerializer
+    
     def get_object(self):
         return self.request.user
-    
 
-class LogoutView(APIView):
+    def retrieve(self, request):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        response = Response()
-        response.delete_cookie('refresh_token')
-        response.data = {
-            'message': 'success',
-        }
-        return response
 
-class LoginView(APIView): # Create API View
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            email = request.data['email']
-            password = request.data['password']
+class LogoutView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-            user = authenticate(username=email, password=password)
-
-            if user is not None:
-                payload = {
-                    'user_id': user.id,
-                    'iat': datetime.datetime.now(datetime.timezone.utc) # issued at
-                }
-                # Convert datetime to Unix timestamps
-                payload['iat'] = int(payload['iat'].timestamp())
-                access_token, refresh_token = generate_jwt_token(payload)
-
-                #RESPONSE#
+    def delete(self, request):
+        refresh_token = request.COOKIES.get('refresh_token', None)
+        access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
+        if refresh_token and access_token:
+            try:
+                BlacklistedToken.blacklist_token(access_token, refresh_token)
                 response = Response()
-                response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
+                response.delete_cookie('refresh_token')
                 response.data = {
-                    'access_token': access_token,
+                    'message': 'Logged out successfully',
                 }
                 response.status_code = status.HTTP_200_OK
                 return response
-            return Response({'error': 'Invalid email or password.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Refresh token not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
+class LoginView(generics.CreateAPIView):
+    serializer_class = LoginSerializer
 
-class RefreshTokenView(APIView):
-    def post(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if not refresh_token:
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        access_token, refresh_token = serializer.save()
+        
+        response = Response()
+        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
+        response.data = {
+            'access_token': access_token,
+        }
+        return response
+        
+        
+class RefreshTokenView(generics.CreateAPIView):
+    serializer_class = RefreshTokenSerializer
+
+    def create(self, request):
+        refresh_token = request.COOKIES.get('refresh_token', None)
+
+        if refresh_token is None:
             return Response({'error': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            payload = decrypt_refresh_token(refresh_token)
-            user_id = payload['payload']['user_id']
-            new_payload = {
-                'user_id': user_id,
-                'iat': datetime.datetime.now(datetime.timezone.utc)
-            }
-            # Convert datetime to Unix timestamps
-            new_payload['iat'] = int(payload['iat'].timestamp())
-            new_access_token, new_refresh_token = generate_jwt_token(new_payload)
-            
-            response = Response()
-            response.set_cookie(key='refresh_token', value=new_refresh_token, httponly=True, secure=True, samesite='Strict')
-            response.data = {
-                'access_token': new_access_token,
-            }
-            response.status_code = status.HTTP_200_OK
-            return response
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Refresh token has expired.'}, status=status.HTTP_400_BAD_REQUEST)
-        except jwt.InvalidTokenError:
-            return Response({'error': 'Invalid refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data={'refresh_token': refresh_token})
+        serializer.is_valid(raise_exception=True)
+        new_access_token, new_refresh_token = serializer.save()
 
-
-
+        response = Response()
+        response.set_cookie(key='refresh_token', value=new_refresh_token, httponly=True, secure=True, samesite='Strict')
+        response.data = {
+            'access_token': new_access_token,
+        }
+        response.status_code = status.HTTP_200_OK
+        return response
 
