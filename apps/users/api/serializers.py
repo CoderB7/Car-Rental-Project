@@ -15,6 +15,7 @@ from apps.shared.redis_client import (
     delete_otp,
     set_verify, 
     get_verify,
+    delete_verify,
     is_token_blacklisted,
 )
 
@@ -59,7 +60,7 @@ class CheckVerificationSerializer(serializers.Serializer):
     
     def create(self, validated_data):
         email =  validated_data.get('email', None)
-        self.email_verify = 'True'
+        self.email_verify = True
         delete_otp(email)
         set_verify(email, self.email_verify)
         return validated_data
@@ -105,6 +106,7 @@ class UserSerializer(serializers.Serializer):
         is_email_valid = get_verify(email)
         if is_email_valid == 'False':
             raise serializers.ValidationError('Email is not valid')
+        delete_verify(email)
         return attrs
     
 
@@ -147,7 +149,7 @@ class RefreshTokenSerializer(serializers.Serializer):
     refresh_token = serializers.CharField(required=True)
 
     def validate_refresh_token(self, value):
-        if BlacklistedToken.is_token_blacklisted(value):
+        if BlacklistedToken.is_token_blacklisted(refresh=value, access=None):
             raise serializers.ValidationError('Refresh token has been blacklisted')
         try:
             payload = decrypt_refresh_token(value)
@@ -169,4 +171,43 @@ class RefreshTokenSerializer(serializers.Serializer):
         new_access_token, new_refresh_token = generate_jwt_token(new_payload)
 
         return new_access_token, new_refresh_token
+
     
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+    password_verify = serializers.BooleanField(read_only=True)
+
+    def validate_confirm_password(self, confirm_password):
+        if not confirm_password:
+            raise serializers.ValidationError('Confirm your new password')
+        return confirm_password
+
+    def validate_new_password(self, new_password):
+        if not new_password:
+            raise serializers.ValidationError('New Password is required')
+        return new_password
+
+    def validate(self, attrs):
+        email = attrs.get('email', None)
+        is_email_valid = get_verify(email)
+        if is_email_valid == 'False':
+            raise serializers.ValidationError('Email is not valid')
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+        
+        if new_password != confirm_password:
+            self.password_verify = False
+            raise serializers.ValidationError('Passwords do not match')
+
+        self.password_verify = True
+        return attrs
+    
+    def update(self,  instance, validated_data):
+        new_password = validated_data.get('new_password')
+
+        if self.password_verify:
+            instance.set_password(new_password)
+            instance.save()
+        return instance
