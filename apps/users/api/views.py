@@ -5,6 +5,7 @@ from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, NotFound
+from rest_framework.exceptions import MethodNotAllowed
 
 from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 from .serializers import (
@@ -16,6 +17,7 @@ from .serializers import (
 
 from apps.shared.redis_client import blacklist_token
 from ..models import User, BlacklistedToken
+from drf_yasg.utils import swagger_auto_schema
 
 class SendVerification(generics.CreateAPIView):
     serializer_class = SendVerificationSerializer
