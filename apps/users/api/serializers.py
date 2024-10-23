@@ -104,7 +104,7 @@ class UserSerializer(serializers.Serializer):
     def validate(self, attrs):
         email = attrs.get('email', None)
         is_email_valid = get_verify(email)
-        if is_email_valid == 'False':
+        if is_email_valid is None:
             raise serializers.ValidationError('Email is not valid')
         delete_verify(email)
         return attrs
@@ -192,7 +192,8 @@ class PasswordResetSerializer(serializers.Serializer):
     def validate(self, attrs):
         email = attrs.get('email', None)
         is_email_valid = get_verify(email)
-        if is_email_valid == 'False':
+        print(is_email_valid)
+        if is_email_valid is None:
             raise serializers.ValidationError('Email is not valid')
         new_password = attrs.get('new_password')
         confirm_password = attrs.get('confirm_password')
@@ -204,9 +205,10 @@ class PasswordResetSerializer(serializers.Serializer):
         self.password_verify = True
         return attrs
     
-    def update(self,  instance, validated_data):
+    def update(self, instance, validated_data):
         new_password = validated_data.get('new_password')
-
+        print('entered')
+        print(self.password_verify)
         if self.password_verify:
             instance.set_password(new_password)
             instance.save()

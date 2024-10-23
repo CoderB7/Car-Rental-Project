@@ -1,6 +1,3 @@
-import jwt
-import datetime
-
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,9 +12,8 @@ from .serializers import (
     PasswordResetSerializer,
 )
 
-from apps.shared.redis_client import blacklist_token
 from ..models import User, BlacklistedToken
-from drf_yasg.utils import swagger_auto_schema
+from apps.shared.utils import success_response, error_response
 
 class SendVerification(generics.CreateAPIView):
     serializer_class = SendVerificationSerializer
@@ -29,8 +25,8 @@ class SendVerification(generics.CreateAPIView):
         serializer = self.serializer_class(data=request.data, context=context) # context
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'message': 'OTP sent to your email.'}, status=status.HTTP_200_OK)
-
+        return success_response(message='OTP sent to your email.')
+        
 
 class CheckVerification(generics.CreateAPIView):
     serializer_class = CheckVerificationSerializer
@@ -39,7 +35,7 @@ class CheckVerification(generics.CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'message': 'OTP verified successfully, email verified.'}, status=status.HTTP_200_OK)
+        return success_response(message='OTP verified successfully, email verified.')
 
 
 class RegistrationView(generics.CreateAPIView):
@@ -50,13 +46,14 @@ class RegistrationView(generics.CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         access_token, refresh_token = serializer.save()
-        
-        response = Response()
-        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
-        response.data = {
+        data = {
             'access_token': access_token,
+            'refresh_token': refresh_token,
         }
-        return response
+        return success_response(
+            data=data,
+            message='User ...', # gap top
+        )
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):

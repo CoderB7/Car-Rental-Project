@@ -84,18 +84,14 @@ class BlacklistedToken(BaseModel):
         """Checks if a refresh token is blacklisted."""
         # Initialize an empty Q object
         query = Q()
-
         # Conditionally add access token to the query
         if access:
             query |= Q(access_token=access)
-
         # Conditionally add refresh token to the query
         if refresh:
             query |= Q(refresh_token=refresh)
-
         # If neither token is provided, return False
         if not query:
             return False
-
         # Return whether any records match the constructed query
         return cls.objects.filter(query).exists()
