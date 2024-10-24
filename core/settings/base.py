@@ -73,6 +73,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "EXCEPTION_HANDLER": 'core.exception_handler.custom_exception_handler',
     "PAGE_SIZE": 10,
 }
 

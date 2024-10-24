@@ -129,7 +129,7 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         email = attrs.get('email', None)
         password = attrs.get('password', None)
-
+        
         user = authenticate(username=email, password=password)
         if user is None:
             raise serializers.ValidationError('Invalid email or password.')
@@ -192,7 +192,6 @@ class PasswordResetSerializer(serializers.Serializer):
     def validate(self, attrs):
         email = attrs.get('email', None)
         is_email_valid = get_verify(email)
-        print(is_email_valid)
         if is_email_valid is None:
             raise serializers.ValidationError('Email is not valid')
         new_password = attrs.get('new_password')

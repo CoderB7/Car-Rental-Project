@@ -73,21 +73,17 @@ class LogoutView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request):
-        refresh_token = request.COOKIES.get('refresh_token', None)
         access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
-        if refresh_token and access_token:
-            try:
-                BlacklistedToken.blacklist_token(access_token, refresh_token)
-                response = Response()
-                response.delete_cookie('refresh_token')
-                response.data = {
-                    'message': 'Logged out successfully',
-                }
-                response.status_code = status.HTTP_200_OK
-                return response
-            except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'error': 'Refresh token not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        refresh_token = self.request.data.get('refresh_token', None) 
+        if refresh_token:
+            if access_token:
+                try:
+                    BlacklistedToken.blacklist_token(access_token, refresh_token)
+                    return success_response(message='Logged out successfully')
+                except Exception as e:
+                    return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(message='Access token not found')
+        return error_response(message='Refresh token not found')
 
 class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
@@ -96,35 +92,35 @@ class LoginView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         access_token, refresh_token = serializer.save()
-        
-        response = Response()
-        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, secure=True, samesite='Strict')
-        response.data = {
+        data = {
             'access_token': access_token,
+            'refresh_token': refresh_token,
         }
-        return response
+        return success_response(
+            data=data,
+            message='Successfull login', # gap top
+        )
         
         
 class RefreshTokenView(generics.CreateAPIView):
     serializer_class = RefreshTokenSerializer
 
     def create(self, request):
-        refresh_token = request.COOKIES.get('refresh_token', None)
-
+        refresh_token = self.request.data.get('refresh_token', None)
         if refresh_token is None:
             return Response({'error': 'Refresh token is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data={'refresh_token': refresh_token})
         serializer.is_valid(raise_exception=True)
         new_access_token, new_refresh_token = serializer.save()
-
-        response = Response()
-        response.set_cookie(key='refresh_token', value=new_refresh_token, httponly=True, secure=True, samesite='Strict')
-        response.data = {
+        data = {
             'access_token': new_access_token,
+            'refresh_token': new_refresh_token,
         }
-        response.status_code = status.HTTP_200_OK
-        return response
+        return success_response(
+            data=data,
+            message='' # gap top
+        )
 
 
 class PasswordResetView(generics.CreateAPIView):
@@ -137,12 +133,17 @@ class PasswordResetView(generics.CreateAPIView):
         try:
             return User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"detail": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
-
+            return error_response(
+                message='User with this email does not exist.',
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
     def create(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update(user, serializer.validated_data)
-        return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
+        return success_response(
+            message="Password updated successfully."
+        )
 
