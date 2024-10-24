@@ -52,7 +52,7 @@ class RegistrationView(generics.CreateAPIView):
         }
         return success_response(
             data=data,
-            message='User ...', # gap top
+            message='User registration successful.' 
         )
 
 
@@ -98,7 +98,7 @@ class LoginView(generics.CreateAPIView):
         }
         return success_response(
             data=data,
-            message='Successfull login', # gap top
+            message='Login successful.'
         )
         
         
@@ -119,7 +119,7 @@ class RefreshTokenView(generics.CreateAPIView):
         }
         return success_response(
             data=data,
-            message='' # gap top
+            message='Token refreshed successfully.'
         )
 
 
