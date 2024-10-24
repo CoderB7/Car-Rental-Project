@@ -27,7 +27,7 @@ class User(AbstractUser, BaseModel):
     objects = UserManager()
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name} - {self.email}'
+        return f'{self.id}'
 
     class Meta:
         verbose_name = ('User')
@@ -65,19 +65,19 @@ class Review(BaseModel):
 
 
 class BlacklistedToken(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blacklisted_tokens')
     access_token = models.CharField(max_length=1024, unique=True)
     refresh_token = models.CharField(max_length=1024, unique=True)
-    blacklisted_at = models.DateTimeField(auto_now_add=True)
 
 
     def __str__(self):
-        return self.token
+        return f"{self.user.first_name}'s blacklisted token"
 
     @classmethod
-    def blacklist_token(cls, access, refresh):
+    def blacklist_token(cls, user, access, refresh):
         """Blacklists a refresh token."""
         if not cls.is_token_blacklisted(access, refresh):
-            cls.objects.get_or_create(access_token=access, refresh_token=refresh)
+            cls.objects.get_or_create(user=user, access_token=access, refresh_token=refresh)
 
     @classmethod
     def is_token_blacklisted(cls, access, refresh):
