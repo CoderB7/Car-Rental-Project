@@ -52,7 +52,7 @@ class RegistrationView(generics.CreateAPIView):
         }
         return success_response(
             data=data,
-            message='User ...', # gap top
+            message='User registration successful.' 
         )
 
 
@@ -74,11 +74,11 @@ class LogoutView(generics.DestroyAPIView):
 
     def delete(self, request):
         access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
-        refresh_token = self.request.data.get('refresh_token', None) 
+        refresh_token = self.request.data.get('refresh_token', None)
         if refresh_token:
             if access_token:
                 try:
-                    BlacklistedToken.blacklist_token(access_token, refresh_token)
+                    BlacklistedToken.blacklist_token(self.request.user, access_token, refresh_token)
                     return success_response(message='Logged out successfully')
                 except Exception as e:
                     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -98,7 +98,7 @@ class LoginView(generics.CreateAPIView):
         }
         return success_response(
             data=data,
-            message='Successfull login', # gap top
+            message='Login successful.'
         )
         
         
@@ -119,7 +119,7 @@ class RefreshTokenView(generics.CreateAPIView):
         }
         return success_response(
             data=data,
-            message='' # gap top
+            message='Token refreshed successfully.'
         )
 
 
