@@ -3,13 +3,18 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.exceptions import MethodNotAllowed
 
+from django.shortcuts import get_object_or_404
+
 from apps.shared.utils import success_response, error_response
 from ..models import Car, Brand
 from .serializers import (
     CarListSerializer,
+    CarAddSerializer,
+    CarDetailSerializer,
     BrandListSerializer,
     BrandAddSerializer,
-    CarAddSerializer,
+    BrandDetailSerializer,
+    BrandCarListSerializer,
 )
 
 
@@ -42,6 +47,22 @@ class CarListView(generics.ListAPIView):
         )
 
 
+class CarDetailView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CarDetailSerializer
+    
+    def get_object(self):
+        car_uuid = self.kwargs.get("id")
+        return get_object_or_404(Car, id=car_uuid)
+
+    def retrieve(self, request, *args, **kwargs):
+        car = self.get_object()
+        serializer = self.get_serializer(car)
+        return success_response(
+            data=serializer.data,
+            message='Car Details'
+        )
+
 class BrandAddView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BrandAddSerializer
@@ -72,3 +93,34 @@ class BrandListView(generics.ListAPIView):
         )
 
 
+class BrandDetailView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BrandDetailSerializer
+
+    def get_object(self):
+        brand_uuid = self.kwargs.get("id")
+        return get_object_or_404(Brand, id=brand_uuid)
+    
+    def retrieve(self, request, *args, **kwargs):
+        brand = self.get_object()
+        serializer = self.get_serializer(brand)
+        return success_response(
+            data=serializer.data,
+            message='Car Details'
+        )
+
+class BrandCarListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BrandCarListSerializer
+
+    def get_queryset(self):
+        brand_uuid = self.kwargs.get('id')
+        return Car.objects.filter(brand=brand_uuid)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(
+            data=serializer.data,
+            message='List of Brands'
+        )

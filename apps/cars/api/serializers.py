@@ -19,6 +19,24 @@ class BrandAddSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Provided year must be less than the current year.')
         return value
 
+
+class BrandListSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    logo = serializers.ImageField()
+
+
+class BrandDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = '__all__'
+
+
+class BrandCarListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Car
+        fields = ['id', 'brand', 'name', 'transmission', 'price', 'image'] 
+
+
 class CarAddSerializer(serializers.ModelSerializer):
     brand = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all())
 
@@ -61,6 +79,9 @@ class CarListSerializer(serializers.Serializer):
     image = serializers.ImageField()
 
 
-class BrandListSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    logo = serializers.ImageField()
+class CarDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Car
+        fields = '__all__'
+
+
