@@ -8,7 +8,7 @@ from .models import Car, Brand
 class CarAdmin(ModelAdmin):
     fieldsets = (
         ("Car Model", {"fields": ("name", "brand", "type")}),#
-        ("Car Info", {"fields": ("license_plate", "transmission", "year" "mileage", "fuel_type", "rating", "price")}),
+        ("Car Info", {"fields": ("license_plate", "transmission", "year", "mileage", "fuel_type", "rating", "price")}),
         ("Car Exterior", {"fields": ("color", "image")}),
         ("Car Interior", {"fields": ("doors", "seats")}),
     )

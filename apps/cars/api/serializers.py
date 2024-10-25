@@ -54,10 +54,11 @@ class CarAddSerializer(serializers.ModelSerializer):
 
 
 class CarListSerializer(serializers.Serializer):
-    image = serializers.ImageField()
+    name = serializers.CharField()
     brand = serializers.CharField()
     transmission = serializers.ChoiceField(choices=TransmissionChoices.choices())
     price = serializers.FloatField()
+    image = serializers.ImageField()
 
 
 class BrandListSerializer(serializers.Serializer):

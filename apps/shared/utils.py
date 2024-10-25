@@ -64,7 +64,7 @@ def process_logo(logo, new_width, new_height):
         img_io = BytesIO()
         img_format = img.format
         img.save(img_io, format=img_format, quality=85, optimize=True)
-        img_io.seek()
+        img_io.seek(0)
 
         if '.' in logo.name:
             original_name = logo.name.rsplit('.', 1)[0]

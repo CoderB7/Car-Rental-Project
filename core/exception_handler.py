@@ -22,9 +22,10 @@ def custom_exception_handler(exc, context):
                 "message": response.data.get('detail', 'Validation error occured'),
                 "data": response.data if response.data is not None else {}
             }, status=response.status_code)
+    print({str(exc)})
     return Response({
         "success": False,
         "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-        "message": "An unexpected error occured.",
+        "message": f"An unexpected error occured.",
         "data": {}
     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

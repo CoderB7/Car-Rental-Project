@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from tempfile import NamedTemporaryFile
 from rest_framework import status
@@ -12,9 +14,13 @@ class Brand(BaseModel):
     logo = models.ImageField(upload_to='brands/', null=True, blank=True)
     year = models.IntegerField()
     
+    class Meta:
+        verbose_name = ('Brand')
+        verbose_name_plural = ('Brands')
+
     def __str__(self):
         return self.name
-    
+
     def save(self, *args, **kwargs):
         if self.logo:
             new_filename, processed_logo = process_logo(self.logo, new_width=400, new_height=400)
@@ -24,10 +30,12 @@ class Brand(BaseModel):
             super().save(*args, **kwargs)
         except Exception as e:
             print(f"Error in super().save(): {e}")
-    
-    class Meta:
-        verbose_name = ('Brand')
-        verbose_name_plural = ('Brands')
+
+    def delete(self, *args, **kwargs):
+        if self.logo:
+            if os.path.isfile(self.logo.path):
+                os.remove(self.logo.path)
+        super().delete(*args, **kwargs)
 
 
 class Car(BaseModel):
@@ -45,7 +53,11 @@ class Car(BaseModel):
     image = models.ImageField(upload_to='cars/', blank=True, null=True)
     type = models.CharField(max_length=25, choices=CarTypeChoices.choices(), default=CarTypeChoices.SEDAN.value)
     rating = models.FloatField()
-
+    
+    class Meta:
+        verbose_name = ('Car')
+        verbose_name_plural = ('Cars')
+        
     def __str__(self):
         return f'{self.name} - {self.brand.name}'
     
@@ -59,10 +71,11 @@ class Car(BaseModel):
         except Exception as e:
             print(f"Error in super().save(): {e}") 
 
-
-    class Meta:
-        verbose_name = ('Car')
-        verbose_name_plural = ('Cars')
-        
+    def delete(self, *args, **kwargs):
+        # Check if the image exists and delete it
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+        super().delete(*args, **kwargs)
 
 
