@@ -1,5 +1,4 @@
 from rest_framework import generics, status, permissions
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.exceptions import MethodNotAllowed
@@ -66,13 +65,23 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def retrieve(self, request):
         user = self.get_object()
         serializer = self.get_serializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return success_response(
+            data=serializer.data,
+            message='User profile'
+        )
+        
 
 
-class LogoutView(generics.DestroyAPIView):
+class LogoutView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def delete(self, request):
+    def get_serializer_class(self):
+        return None
+        
+    def get_serializer(self, *args, **kwargs):
+        return None
+    
+    def create(self, request):
         access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
         refresh_token = self.request.data.get('refresh_token', None)
         if refresh_token:

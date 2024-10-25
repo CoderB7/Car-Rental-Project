@@ -1,8 +1,10 @@
 from django.db import models
+from tempfile import NamedTemporaryFile
+from rest_framework import status
 
 from apps.shared.models import BaseModel
-
 from apps.shared.enums import TransmissionChoices, FuelTypeChoices, CarTypeChoices
+from apps.shared.utils import process_save, process_logo
 
 class Brand(BaseModel):
     name = models.CharField(max_length=64, unique=True)
@@ -13,9 +15,15 @@ class Brand(BaseModel):
     def __str__(self):
         return self.name
     
-    # def save(*args, **kwargs):
-    #     if self.logo:
-            
+    def save(self, *args, **kwargs):
+        if self.logo:
+            new_filename, processed_logo = process_logo(self.logo, new_width=400, new_height=400)
+            self.logo.save(new_filename, processed_logo, save=False)
+        
+        try:
+            super().save(*args, **kwargs)
+        except Exception as e:
+            print(f"Error in super().save(): {e}")
     
     class Meta:
         verbose_name = ('Brand')
@@ -33,14 +41,25 @@ class Car(BaseModel):
     doors = models.IntegerField()
     seats = models.IntegerField()
     fuel_type = models.CharField(max_length=25, choices=FuelTypeChoices.choices(), default=FuelTypeChoices.PETROL.value)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.FloatField()
     image = models.ImageField(upload_to='cars/', blank=True, null=True)
     type = models.CharField(max_length=25, choices=CarTypeChoices.choices(), default=CarTypeChoices.SEDAN.value)
-    rating = models.DecimalField(max_digits=2, decimal_places=1)
+    rating = models.FloatField()
 
     def __str__(self):
         return f'{self.name} - {self.brand.name}'
     
+    def save(self, *args, **kwargs):
+        if self.image:
+            new_filename, processed_image = process_save(self.image, new_width=800, new_height=800)
+            # Save the BytesIO object to the ImageField with the new filename
+            self.image.save(new_filename, processed_image, save=False)
+        try:
+            super().save(*args, **kwargs)
+        except Exception as e:
+            print(f"Error in super().save(): {e}") 
+
+
     class Meta:
         verbose_name = ('Car')
         verbose_name_plural = ('Cars')
