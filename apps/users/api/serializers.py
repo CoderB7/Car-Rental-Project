@@ -137,6 +137,31 @@ class LoginSerializer(serializers.Serializer):
         return attrs
     
 
+class LogoutSerializer(serializers.Serializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    access_token = serializers.CharField(required=True)
+    refresh_token = serializers.CharField(required=True)
+
+    def validate_refresh_token(self, value):
+        if not value:
+            raise serializers.ValidationError('Refresh token not found')
+        return value
+
+    def validate_access_token(self, value):
+        if not value:
+            raise serializers.ValidationError('Access token not found')
+        return value
+
+    def create(self, validated_data):
+        access_token = validated_data.get('access_token')
+        refresh_token = validated_data.get('refresh_token')
+        user = validated_data.get('user')
+        try:
+            BlacklistedToken.blacklist_token(user, access_token, refresh_token)
+        except Exception as e:
+            raise serializers.ValidationError({'error': str(e)})
+        return validated_data
+
 class UserProfileSerializer(serializers.Serializer):
     email = serializers.EmailField()
     first_name = serializers.CharField(max_length=150)

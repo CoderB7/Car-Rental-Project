@@ -3,12 +3,15 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.exceptions import MethodNotAllowed
 
-from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 from .serializers import (
+    UserSerializer, 
+    UserProfileSerializer, 
+    LoginSerializer,
     SendVerificationSerializer, 
     CheckVerificationSerializer, 
     RefreshTokenSerializer,
     PasswordResetSerializer,
+    LogoutSerializer
 )
 
 from ..models import User, BlacklistedToken
@@ -74,25 +77,20 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
 class LogoutView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-
-    def get_serializer_class(self):
-        return None
-        
-    def get_serializer(self, *args, **kwargs):
-        return None
+    serializer_class = LogoutSerializer
     
     def create(self, request):
         access_token = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
         refresh_token = self.request.data.get('refresh_token', None)
-        if refresh_token:
-            if access_token:
-                try:
-                    BlacklistedToken.blacklist_token(self.request.user, access_token, refresh_token)
-                    return success_response(message='Logged out successfully')
-                except Exception as e:
-                    return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-            return error_response(message='Access token not found')
-        return error_response(message='Refresh token not found')
+        user = str(self.request.user.id)
+        serializer = self.get_serializer(data={
+            'user': user, 
+            'access_token': access_token, 
+            'refresh_token': refresh_token
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(message='Logged out successfully')
 
 class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
