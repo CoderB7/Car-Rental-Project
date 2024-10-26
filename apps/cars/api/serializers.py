@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from ..models import ( 
     TransmissionChoices, 
@@ -35,6 +36,28 @@ class BrandCarListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Car
         fields = ['id', 'brand', 'name', 'transmission', 'price', 'image'] 
+
+
+class BrandDeleteSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField()
+
+    class Meta:
+        model = Brand
+        fields = ['id']
+    
+    def validate_id(self, value):
+        if not value:
+            raise serializers.ValidationError('Brand id is not provided')
+        return value
+    
+    def create(self, validated_data):
+        try:
+            brand = Brand.objects.get(id=validated_data.get('id'))
+        except Brand.DoesNotExist:
+            raise NotFound("Brand not found.")
+        brand.delete()
+        return validated_data
+
 
 
 class CarAddSerializer(serializers.ModelSerializer):
@@ -79,9 +102,32 @@ class CarListSerializer(serializers.Serializer):
     image = serializers.ImageField()
 
 
+
 class CarDetailSerializer(serializers.ModelSerializer):
+    brand = BrandDetailSerializer()
+
     class Meta:
         model = Car
         fields = '__all__'
+    
 
+class CarDeleteSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField()
+
+    class Meta:
+        model = Car
+        fields = ['id']
+    
+    def validate_id(self, value):
+        if not value:
+            raise serializers.ValidationError("Car id is not provided")
+        return value
+
+    def create(self, validated_data):
+        try:
+            car = Car.objects.get(id=validated_data.get('id'))
+        except Car.DoesNotExist:
+            raise NotFound("Car not found.")
+        car.delete()
+        return validated_data
 
