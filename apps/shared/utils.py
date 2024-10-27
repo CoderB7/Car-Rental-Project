@@ -24,7 +24,6 @@ def error_response(data=None, message="Error", code=status.HTTP_400_BAD_REQUEST)
 
 def process_save(image, new_width, new_height):
     try:
-        print('image received')
         img = Image.open(image)
         img.verify()
         img = Image.open(image)

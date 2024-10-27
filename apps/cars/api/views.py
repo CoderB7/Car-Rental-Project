@@ -13,10 +13,12 @@ from .serializers import (
     CarListSerializer,
     CarAddSerializer,
     CarDetailSerializer,
+    CarUpdateSerializer,
     CarDeleteSerializer,
     BrandListSerializer,
     BrandAddSerializer,
     BrandDetailSerializer,
+    BrandUpdateSerializer,
     BrandCarListSerializer,
     BrandDeleteSerializer,
 )
@@ -66,6 +68,21 @@ class CarDetailView(generics.RetrieveAPIView):
             data=serializer.data,
             message='Car Details'
         )
+
+
+class CarUpdateView(generics.UpdateAPIView):
+    queryset = Car.objects.all()
+    serializer_class = CarUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(message="Car object updated successfully", data=serializer.data)
 
 
 class CarDeleteView(generics.CreateAPIView):
@@ -127,6 +144,22 @@ class BrandDetailView(generics.RetrieveAPIView):
             message='Car Details'
         )
 
+
+class BrandUpdateView(generics.UpdateAPIView):
+    queryset = Brand.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BrandUpdateSerializer
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(message='Brand object updated successfully', data=serializer.data)
+    
+
 class BrandCarListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BrandCarListSerializer
@@ -160,12 +193,13 @@ class BrandDeleteView(generics.CreateAPIView):
 class SearchFilterView(generics.ListCreateAPIView):
     queryset = Car.objects.all()
     serializer_class = CarListSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['transmission', 'fuel_type', 'type']
     search_fields = ['name', 'brand__name']
     ordering_fields = ['price', 'year', 'rating']
 
-    def get_queryset(self):
+    def get_queryset(self): # custom queryset
         queryset = super().get_queryset()
 
         search_query = self.request.query_params.get('q')
