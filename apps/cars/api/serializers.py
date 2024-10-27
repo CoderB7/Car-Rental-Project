@@ -94,12 +94,10 @@ class CarAddSerializer(serializers.ModelSerializer):
         return value
 
 
-class CarListSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    brand = serializers.CharField()
-    transmission = serializers.ChoiceField(choices=TransmissionChoices.choices())
-    price = serializers.FloatField()
-    image = serializers.ImageField()
+class CarListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Car
+        fields = ['id', 'brand', 'name', 'type', 'transmission', 'fuel_type', 'price', 'image'] 
 
 
 

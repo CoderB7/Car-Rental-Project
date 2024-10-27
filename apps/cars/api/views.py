@@ -1,9 +1,11 @@
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.exceptions import MethodNotAllowed
 
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
 
 from apps.shared.utils import success_response, error_response
 from ..models import Car, Brand
@@ -153,4 +155,38 @@ class BrandDeleteView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return success_response(message="Brand deleted successfully")
+
+
+class SearchFilterView(generics.ListCreateAPIView):
+    queryset = Car.objects.all()
+    serializer_class = CarListSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['transmission', 'fuel_type', 'type']
+    search_fields = ['name', 'brand__name']
+    ordering_fields = ['price', 'year', 'rating']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        search_query = self.request.query_params.get('q')
+
+        min_price = self.request.query_params.get('min_price')
+        max_price = self.request.query_params.get('max_price')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) | Q(brand__name__icontains=search_query)
+            )
+        
+        if min_price is not None:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price is not None:
+            queryset = queryset.filter(price__lte=max_price)
+        
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response.data['count'] = len(response.data['results'])
+        return success_response(data=response.data)
 
