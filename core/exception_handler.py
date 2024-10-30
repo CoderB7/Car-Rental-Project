@@ -19,8 +19,8 @@ def custom_exception_handler(exc, context):
             return Response({
                 "success": False,
                 "code": response.status_code,
-                "message": response.data.get('detail', 'Validation error occured'),
-                "data": response.data if response.data is not None else {}
+                "message": response.data,
+                "data": {}
             }, status=response.status_code)
     print({str(exc)})
     return Response({

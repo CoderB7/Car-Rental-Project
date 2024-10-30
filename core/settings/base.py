@@ -15,7 +15,7 @@ import environ
 
 from pathlib import Path
 
-from core.unfold_conf import * 
+from core.unfold_conf import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -45,7 +45,7 @@ DJANGO_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',   
 ]
 
 CUSTOM_APPS = [
@@ -58,12 +58,17 @@ CUSTOM_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
-    "drf_yasg",
+    #"drf_yasg",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
     "rosetta",
     'corsheaders',
 ]
 
+INSTALLED_APPS = DJANGO_APPS + CUSTOM_APPS + THIRD_PARTY_APPS
+
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "core.authentication.CustomJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
@@ -77,7 +82,26 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 
-INSTALLED_APPS = DJANGO_APPS + CUSTOM_APPS + THIRD_PARTY_APPS
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Car Rental API',
+    'DESCRIPTION': 'Car Rental Group',
+    'VERSION': 'v1',
+    'TERMS_OF_SERVICE': 'https://www.google.com/policies/terms/',
+    'CONTACT': {'email': 'info@carrental.group'},
+    'LICENSE': {'name': 'BSD License'},
+    'SERVE_PUBLIC': True,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'GENERATOR_CLASS': 'core.generators.BothHttpAndHttpsSchemaGenerator',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    'PREPROCESSING_HOOKS': [
+        'core.extensions.CustomJWTAuthenticationExtension',
+    ],
+    'SECURITY': [{'CustomJWT': []}]
+    # OTHER SETTINGS
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
