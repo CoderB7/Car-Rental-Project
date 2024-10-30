@@ -14,6 +14,7 @@ import core.utils
 import environ
 
 from pathlib import Path
+from django.urls import reverse_lazy
 
 from core.unfold_conf import *
 
@@ -91,16 +92,17 @@ SPECTACULAR_SETTINGS = {
     'LICENSE': {'name': 'BSD License'},
     'SERVE_PUBLIC': True,
     'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
-    'GENERATOR_CLASS': 'core.generators.BothHttpAndHttpsSchemaGenerator',
+    'GENERATOR_CLASS': 'core.schema.BothHttpAndHttpsSchemaGenerator',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
     'REDOC_DIST': 'SIDECAR',
     'PREPROCESSING_HOOKS': [
-        'core.extensions.CustomJWTAuthenticationExtension',
+        'core.hooks.remove_apis_from_list',
     ],
-    'SECURITY': [{'CustomJWT': []}]
+    'SECURITY': [{'CustomJWT': []}],
     # OTHER SETTINGS
+    "EXCLUDE_PATH": [reverse_lazy("schema")],
 }
 
 MIDDLEWARE = [

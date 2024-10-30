@@ -20,6 +20,7 @@ class RentHistory(BaseModel):
         return f"Rental by {self.user.email} for {self.car.license_plate} from {self.rental_start} to {self.rental_end}"
 
     class Meta:
+        
         verbose_name = ('Rent History')
         verbose_name_plural = ('Rent History')
 
