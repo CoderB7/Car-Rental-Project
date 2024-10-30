@@ -77,20 +77,19 @@ class CarUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True) # partial true means put and patch does the same job
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return success_response(message="Car object updated successfully", data=serializer.data)
 
 
-class CarDeleteView(generics.CreateAPIView):
+class CarDeleteView(generics.DestroyAPIView):
     queryset = Car.objects.all()
     serializer_class = CarDeleteSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         car_uuid = kwargs.get("id")
         serializer = self.get_serializer(data={"id": car_uuid})
         serializer.is_valid(raise_exception=True)
@@ -152,9 +151,8 @@ class BrandUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return success_response(message='Brand object updated successfully', data=serializer.data)
@@ -177,12 +175,12 @@ class BrandCarListView(generics.ListAPIView):
         )
 
 
-class BrandDeleteView(generics.CreateAPIView):
+class BrandDeleteView(generics.DestroyAPIView):
     queryset = Brand.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BrandDeleteSerializer
 
-    def create(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         brand_uuid = kwargs.get("id")
         serializer = self.get_serializer(data={"id": brand_uuid})
         serializer.is_valid(raise_exception=True)

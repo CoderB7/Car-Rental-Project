@@ -38,7 +38,7 @@ def process_save(image, new_width, new_height):
         # img = img.resize((new_width, new_height), Image.LANCZOS)
         # Prepare the image for saving
         temp_img = BytesIO()
-        img.save(temp_img, format="JPEG", quality=70, optimize=True)
+        img.save(temp_img, format="JPEG", quality=100, optimize=True)
         temp_img.seek(0)
         # Change file extension to .jpg
         if '.' in image.name:

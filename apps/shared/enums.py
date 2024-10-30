@@ -44,3 +44,8 @@ class PaymentMethodChoices(EnumBaseModel):
     CASH = "cash"
     CARD = "card"
 
+
+class BookingStatusChoices(EnumBaseModel):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    EXPIRED = "expired"

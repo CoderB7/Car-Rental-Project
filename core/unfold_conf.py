@@ -134,7 +134,7 @@ UNFOLD = {
             },
             # Rent History
             {
-                "title": _("Rent History"),
+                "title": _("Rent"),
                 "separator": True,
                 "items": [
                     {
@@ -142,6 +142,11 @@ UNFOLD = {
                         "icon": "home_repair_service",
                         "link": reverse_lazy("admin:rent_renthistory_changelist"),
                     },
+                    {
+                        "title": _("Cart"),
+                        "icon": "home_repair_service",
+                        "link": reverse_lazy("admin:rent_cart_changelist"),
+                    }
                 ]
             }, 
             # Common
