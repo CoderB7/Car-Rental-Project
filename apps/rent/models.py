@@ -7,8 +7,8 @@ from apps.cars.models import Car
 
 
 class RentHistory(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rent_history')
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='rent_history')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rent_histories')
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='rent_histories')
     rental_start = models.DateField()
     rental_end = models.DateField()
     total_cost = models.DecimalField(max_digits=10, decimal_places=2)
@@ -20,12 +20,12 @@ class RentHistory(BaseModel):
         return f"Rental by {self.user.email} for {self.car.license_plate} from {self.rental_start} to {self.rental_end}"
 
     class Meta:
-        
+        db_table = "rent_history"
         verbose_name = ('Rent History')
         verbose_name_plural = ('Rent History')
 
 
-class Cart(BaseModel): # Booking
+class Booking(BaseModel): # Booking
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Carts')
     car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='Carts')
     pickup_location = models.CharField(max_length=100)
@@ -35,9 +35,10 @@ class Cart(BaseModel): # Booking
     status = models.CharField(max_length=35, choices=BookingStatusChoices.choices(), default=BookingStatusChoices.PENDING.value)
 
     class Meta:
+        db_table = "booking"
         ordering = ['-created_at']
-        verbose_name = ('Cart')
-        verbose_name_plural = ('Cart')
+        verbose_name = ('Booking')
+        verbose_name_plural = ('Bookings')
     
     def __str__(self):
         return f'Reservation {self.id} for {self.car.name}'

@@ -30,6 +30,7 @@ class User(AbstractUser, BaseModel):
         return f'{self.id}'
 
     class Meta:
+        db_table = "user"
         verbose_name = ('User')
         verbose_name_plural = ('Users')
 
@@ -46,6 +47,7 @@ class DriverLicence(BaseModel):
         return f'{self.user} - {self.number}'
 
     class Meta:
+        db_table = "driver_licence"
         verbose_name = ('Driver Licence')
         verbose_name_plural = ('Driver Licences')
 
@@ -60,6 +62,7 @@ class Review(BaseModel):
         return f'Review by {self.user.email} for {self.car.license_plate}'
 
     class Meta:
+        db_table = "review"
         verbose_name = ('Review')
         verbose_name_plural = ('Reviews')
 
@@ -95,3 +98,8 @@ class BlacklistedToken(BaseModel):
             return False
         # Return whether any records match the constructed query
         return cls.objects.filter(query).exists()
+
+    class Meta:
+        db_table = "blacklisted_token"
+        verbose_name = ('Blacklisted Token')
+        verbose_name_plural = ('Blacklisted Tokens')

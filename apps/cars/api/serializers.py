@@ -37,6 +37,12 @@ class BrandCarListSerializer(serializers.ModelSerializer):
         model = Car
         fields = ['id', 'brand', 'name', 'transmission', 'price', 'image'] 
 
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        if instance.brand:
+            response["brand_name"] = instance.brand.name
+        return response
+
 
 class BrandUpdateSerializer(serializers.ModelSerializer):
     class Meta:

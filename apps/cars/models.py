@@ -15,6 +15,7 @@ class Brand(BaseModel):
     year = models.IntegerField()
     
     class Meta:
+        db_table = "brand"
         verbose_name = ('Brand')
         verbose_name_plural = ('Brands')
 
@@ -55,6 +56,7 @@ class Car(BaseModel):
     rating = models.FloatField()
     
     class Meta:
+        db_table = "car"
         verbose_name = ('Car')
         verbose_name_plural = ('Cars')
         

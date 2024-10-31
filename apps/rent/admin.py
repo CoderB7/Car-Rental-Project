@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from unfold.admin import ModelAdmin
 
-from .models import RentHistory, Cart
+from .models import RentHistory, Booking
 
 
 @admin.register(RentHistory)
@@ -20,8 +20,8 @@ class RentHistoryAdmin(ModelAdmin):
     ordering = ("-id", )
 
 
-@admin.register(Cart)
-class CartAdmin(ModelAdmin):
+@admin.register(Booking)
+class BookingAdmin(ModelAdmin):
     fieldsets = (
         (None, {"fields": ("user", "car", "status")}),
         ("Rent info", {"fields": ("rental_start", "rental_end", "total_cost")}),

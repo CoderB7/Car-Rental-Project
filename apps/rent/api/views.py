@@ -3,7 +3,7 @@ from rest_framework import generics, status, permissions, filters
 from django.shortcuts import get_object_or_404
 
 from apps.shared.utils import success_response, error_response
-from ..models import Cart
+from ..models import Booking
 from .serializers import (
     CarBookCartSerializer,
 )

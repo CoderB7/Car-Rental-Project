@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
 from ..models import (
-    Cart, 
+    Booking, 
     RentHistory
 )
 
@@ -25,7 +25,7 @@ class CarBookCartSerializer(serializers.ModelSerializer):
     rental_end = ISO8601DateTimeField()
 
     class Meta:
-        model = Cart
+        model = Booking
         fields = '__all__'
 
     def validate_rental_start(self, value):
@@ -52,4 +52,4 @@ class CarBookCartSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return Cart.objects.create(**validated_data)
+        return Booking.objects.create(**validated_data)

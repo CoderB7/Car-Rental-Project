@@ -44,6 +44,7 @@ class Card(BaseModel):
         return decrypted_key
 
     class Meta:
+        db_table = "card"
         verbose_name = ('Card')
         verbose_name_plural = ('Cards')
 
@@ -68,6 +69,7 @@ class Transaction(BaseModel): # change to Base Model later
         return f'{self.user} - {self.amount}'
     
     class Meta:
+        db_table = "transaction"
         verbose_name = ('Payment')
         verbose_name_plural = ('Payments')
 
