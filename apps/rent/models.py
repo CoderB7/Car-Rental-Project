@@ -30,9 +30,11 @@ class Booking(BaseModel): # Booking
     car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='Carts')
     pickup_location = models.CharField(max_length=100)
     dropoff_location = models.CharField(max_length=100)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
     rental_start = models.DateField()
     rental_end = models.DateField()
     status = models.CharField(max_length=35, choices=BookingStatusChoices.choices(), default=BookingStatusChoices.PENDING.value)
+    agreement_signed = models.BooleanField(default=False) # offerta
 
     class Meta:
         db_table = "booking"

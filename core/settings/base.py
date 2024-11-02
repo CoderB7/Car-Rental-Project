@@ -14,6 +14,7 @@ import core.utils
 import environ
 
 from pathlib import Path
+from celery.schedules import crontab
 from django.urls import reverse_lazy
 
 from core.unfold_conf import *
@@ -23,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # READING ENV
 env = environ.Env()
-
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -145,7 +146,7 @@ DATABASES = {
         "ENGINE": 'django.db.backends.postgresql_psycopg2',
         "NAME": env.str("DB_NAME"),
         "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
+        "PASSWORD": env("DB_PASSWORD"),
         "HOST": env.str("DB_HOST"),
         "PORT": env.str("DB_PORT"),
     }
@@ -228,6 +229,22 @@ EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = env.str("EMAIL_PORT")
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+# Celery
+CELERY_BROKER_URL = 'redis://localhost:6380/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6380/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {
+    'expire-old-bookings': {
+        'task': 'apps.rent.tasks.expire_old_bookings',
+        'schedule': crontab(hour='*/1'),  # Run every hour
+    },
+}
+
 
 # CONSTANTS
 ENCRYPTION_KEY=env.str('ENCRYPTION_KEY').encode()

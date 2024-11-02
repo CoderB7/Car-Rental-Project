@@ -45,7 +45,7 @@ class Car(BaseModel):
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, related_name='car')
     transmission = models.CharField(max_length=25, choices=TransmissionChoices.choices(), default=TransmissionChoices.MANUAL.value)
     year = models.IntegerField()
-    color = models.CharField(max_length=20)
+    color = models.CharField(max_length=40)
     mileage = models.IntegerField()
     doors = models.IntegerField()
     seats = models.IntegerField()

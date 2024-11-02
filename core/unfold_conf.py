@@ -143,9 +143,9 @@ UNFOLD = {
                         "link": reverse_lazy("admin:rent_renthistory_changelist"),
                     },
                     {
-                        "title": _("Cart"),
+                        "title": _("Booking"),
                         "icon": "home_repair_service",
-                        "link": reverse_lazy("admin:rent_cart_changelist"),
+                        "link": reverse_lazy("admin:rent_booking_changelist"),
                     }
                 ]
             }, 
