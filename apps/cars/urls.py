@@ -11,7 +11,7 @@ from apps.cars.api.views import (
     BrandCarListView,
     BrandUpdateView,
     BrandDeleteView,
-    SearchFilterView,
+    SearchView,
 )
 
 urlpatterns = [
@@ -28,5 +28,5 @@ urlpatterns = [
     path('brand/<uuid:id>/update/', BrandUpdateView.as_view(), name='brand-update'),
     path('brand/<uuid:id>/delete/', BrandDeleteView.as_view(), name='brand-delete'),
 
-    path('search/', SearchFilterView.as_view(), name='car-search')
+    path('search/', SearchView.as_view(), name='car-search')
 ]

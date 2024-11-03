@@ -9,6 +9,7 @@ from django.db.models import Q
 
 from apps.shared.utils import success_response, error_response
 from ..models import Car, Brand
+from ..filters import CarFilter
 from .serializers import (
     CarListSerializer,
     CarAddSerializer,
@@ -40,12 +41,14 @@ class CarAddView(generics.CreateAPIView):
 class CarListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CarListSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CarFilter
 
     def get_queryset(self):
         return Car.objects.all()
     
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return success_response(
             data=serializer.data,
@@ -188,12 +191,11 @@ class BrandDeleteView(generics.DestroyAPIView):
         return success_response(message="Brand deleted successfully")
 
 
-class SearchFilterView(generics.ListCreateAPIView):
+class SearchView(generics.ListCreateAPIView):
     queryset = Car.objects.all()
     serializer_class = CarListSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['transmission', 'fuel_type', 'type']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'brand__name']
     ordering_fields = ['price', 'year', 'rating']
 

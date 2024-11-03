@@ -43,4 +43,4 @@ class Booking(BaseModel): # Booking
         verbose_name_plural = ('Bookings')
     
     def __str__(self):
-        return f'Reservation {self.id} for {self.car.name}'
+        return f'Booking {self.id} for {self.car.name}'
