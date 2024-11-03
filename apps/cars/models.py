@@ -6,7 +6,7 @@ from rest_framework import status
 
 from apps.shared.models import BaseModel
 from apps.shared.enums import TransmissionChoices, FuelTypeChoices, CarTypeChoices
-from apps.shared.utils import process_save, process_logo
+from apps.shared.utils import process_image, process_logo
 
 class Brand(BaseModel):
     name = models.CharField(max_length=64, unique=True)
@@ -65,7 +65,7 @@ class Car(BaseModel):
     
     def save(self, *args, **kwargs):
         if self.image:
-            new_filename, processed_image = process_save(self.image, new_width=800, new_height=800)
+            new_filename, processed_image = process_image(self.image, new_width=800, new_height=800)
             # Save the BytesIO object to the ImageField with the new filename
             self.image.save(new_filename, processed_image, save=False)
         try:

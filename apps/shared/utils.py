@@ -1,7 +1,9 @@
+import os
 from rest_framework.response import Response
 from rest_framework import status
 
 from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
 
 from PIL import Image
 from io import BytesIO
@@ -22,7 +24,7 @@ def error_response(data=None, message="Error", code=status.HTTP_400_BAD_REQUEST)
         "data": data if data is not None else {}
     }, status=code)
 
-def process_save(image, new_width, new_height):
+def process_image(image, new_width, new_height):
     try:
         img = Image.open(image)
         img.verify()
@@ -74,3 +76,16 @@ def process_logo(logo, new_width, new_height):
     
     except (IOError, SyntaxError) as e:
         raise ValueError(f"Invalid logo. -- {e}")
+
+def process_document(file, user_id):
+    if file.size > 2 * 1024 * 1024:
+        raise ValidationError("The file size is too large. It should be less than 2 MB.")
+    ext = os.path.splitext(file.name)[1].lower()
+    if ext != '.pdf':
+        raise ValidationError("Unsupported document file type")
+    # new filename
+    if '.' in file.name:
+        original_name = file.name.rsplit('.', 1)[0]
+    
+    new_filename = f"{original_name}_{user_id}.{ext}"
+    return new_filename, file

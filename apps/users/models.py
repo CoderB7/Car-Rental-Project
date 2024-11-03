@@ -1,9 +1,13 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 from apps.users.managers import UserManager
 from apps.shared.models import BaseModel
+from apps.shared.utils import process_image, process_document
 from apps.cars.models import Car
 
 
@@ -16,7 +20,7 @@ class User(AbstractUser, BaseModel):
     
     address = models.CharField(max_length=128, null=True, blank=True)
     passport_number = models.CharField(max_length=64)
-    passport_file = models.FileField(upload_to='user/passports/', blank=True, null=True)
+    passport_file = models.FileField(upload_to='passports/', max_length=255, blank=True, null=True)
 
     username = None
 
@@ -34,6 +38,28 @@ class User(AbstractUser, BaseModel):
         verbose_name = ('User')
         verbose_name_plural = ('Users')
 
+    def save(self, *args, **kwargs):
+        if self.passport_file:
+            ext = os.path.splitext(self.passport_file.name)[1].lower()
+            if ext in ['.jpg', '.jpeg', '.png']:
+                new_filename, processed_image = process_image(self.passport_file, new_width=800, new_height=800)
+                new_filename = f"{new_filename.rsplit('.', 1)[0]}_{self.id}.jpg"
+                self.passport_file.save(new_filename, processed_image, save=False)
+            else:
+                new_filename, file = process_document(self.passport_file, self.id)
+                self.passport_file.save(new_filename, file, save=False)
+        try:
+            super().save(*args, **kwargs)   
+        except Exception as e:
+            print(f"Error in super().save(): {e}")
+
+    def delete(self, *args, **kwargs):
+        # check if the file exists and delete it
+        if self.passport_file:
+            if os.path.isfile(self.passport_file.path):
+                os.remove(self.passport_file.path)
+        super().delete(*args, **kwargs)
+    
 
 class DriverLicence(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='driver_licence')

@@ -66,32 +66,47 @@ class CheckVerificationSerializer(serializers.Serializer):
         return validated_data
 
 
-class UserSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=150)
-    last_name = serializers.CharField(max_length=150)
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    date_of_birth = serializers.DateField(required=False)
-    
+class UserSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = User
+        fields = '__all__'
+
     def validate_password(self, password):
         if not password:
             raise serializers.ValidationError('Password is required')
         return password
-
+    
+    def validate(self, attrs):
+        email = attrs.get('email', None)
+        is_email_valid = get_verify(email)
+        if is_email_valid is None:
+            raise serializers.ValidationError('Email is not valid')
+        delete_verify(email)
+        return attrs
+    
     def create(self, validated_data):
         email = validated_data.get('email', None)
         password = validated_data.get('password', None)
         first_name = validated_data.get('first_name', None)
         last_name = validated_data.get('last_name', None)
         dob = validated_data.get('date_of_birth', None)
+        address = validated_data.get('address', None)
+        passport_number = validated_data.get('passport_number', None)
+        passport_file = validated_data.get('passport_file', None)
 
-        user = User.objects.create_user(
-            email, 
-            password, 
+        user = User(
+            email=email, 
             first_name=first_name, 
             last_name=last_name,
             date_of_birth=dob,
+            address=address,
+            passport_number=passport_number,
+            passport_file=passport_file
         )
+
+        user.set_password(password)
+        user.save()
+        
         payload = {
             'user_id': user.id,
             'iat': datetime.datetime.now(datetime.timezone.utc)
@@ -101,13 +116,7 @@ class UserSerializer(serializers.Serializer):
         access_token, refresh_token = generate_jwt_token(payload)
         return access_token, refresh_token
 
-    def validate(self, attrs):
-        email = attrs.get('email', None)
-        is_email_valid = get_verify(email)
-        if is_email_valid is None:
-            raise serializers.ValidationError('Email is not valid')
-        delete_verify(email)
-        return attrs
+    
     
 
 class LoginSerializer(serializers.Serializer):
