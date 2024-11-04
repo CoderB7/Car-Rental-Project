@@ -27,7 +27,8 @@ class CarBookingAddListView(generics.ListCreateAPIView):
         return Booking.objects.all()
 
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
+        user_id = self.request.user.id
+        serializer = self.get_serializer(data=request.data, user_id=user_id)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return success_response(

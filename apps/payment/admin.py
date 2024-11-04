@@ -7,12 +7,10 @@ from .models import Card, Transaction
 @admin.register(Card)
 class CardAdmin(ModelAdmin):
     fieldsets = (
-        ("Card info", {"fields": ("user", "four_digits", "expiry_date", "hashed_cvv")}),
+        ("Card info", {"fields": ("user", "four_digits", "token")}),
     )
     list_display = ("id", "user", "four_digits")
     list_display_links = ("id", "user")
-    list_filter = ("expiry_date", )
-    search_fields = ("number", )
     ordering = ("-id",)
 
 

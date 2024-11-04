@@ -17,6 +17,7 @@ urlpatterns += [
     path("api/users/", include('apps.users.urls')),
     path("api/cars/", include('apps.cars.urls')),
     path("api/rent/", include('apps.rent.urls')),
+    path("api/payment/", include('apps.payment.urls')),
 ]
 
 urlpatterns += swagger_urlpatterns

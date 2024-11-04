@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
+from apps.users.models import User
 from ..models import (
     Booking, 
     RentHistory
@@ -26,7 +27,11 @@ class CarBookingAddSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ['car', 'pickup_location', 'dropoff_location', 'total_cost', 'rental_start', 'rental_end', 'status', 'agreement_signed']
+
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id', None)
+        super(CarBookingAddSerializer, self).__init__(*args, **kwargs)
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -55,15 +60,21 @@ class CarBookingAddSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         rental_start = attrs.get('rental_start', None)
         rental_end = attrs.get('rental_end', None)
-        user_id = attrs.get('user', None)
         car_id = attrs.get('car', None)
-        if Booking.objects.filter(user=user_id, car=car_id).exists():
+
+        # Check if the user_id is available
+        if self.user_id is None:
+            raise serializers.ValidationError("User ID is required.")
+        
+        if Booking.objects.filter(user=self.user_id, car=car_id).exists():
             raise serializers.ValidationError("Already booked")
         if rental_end < rental_start:
             raise serializers.ValidationError('Rental end time must be later than the rental start time')
         return attrs
 
     def create(self, validated_data):
+        user = User.objects.get(id=self.user_id)
+        validated_data['user'] = user
         return Booking.objects.create(**validated_data)
 
 
