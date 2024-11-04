@@ -9,6 +9,7 @@ from .serializers import (
     CardGetVerifyCodeSerializer,
     CardVerifyCodeSerializer,
     CardDeleteSerializer,
+    CardListSerializer
 )
 
 
@@ -52,6 +53,23 @@ class CardVerifyCodeView(generics.CreateAPIView):
         return success_response(
             message='Successfully verified card',
         )
+
+
+class CardListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CardListSerializer
+
+    def get_queryset(self):
+        return Card.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(
+            data=serializer.data,
+            message='List of Cards'
+        )
+
 
 class CardDeleteView(generics.DestroyAPIView):
     queryset = Card.objects.all()

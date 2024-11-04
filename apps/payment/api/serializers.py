@@ -117,7 +117,7 @@ class CardVerifyCodeSerializer(serializers.Serializer):
             )
             card.save()
         return validated_data
-    
+
 
 class CardDeleteSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField()
@@ -158,3 +158,15 @@ class CardDeleteSerializer(serializers.ModelSerializer):
             if mock_data['result']['success']:
                 card.delete()
         return validated_data
+    
+
+class CardListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        if instance.user:
+            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
+        return response
