@@ -3,10 +3,12 @@ from datetime import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
+from apps.users.models import User
 from ..models import ( 
     TransmissionChoices, 
     Brand, 
-    Car
+    Car,
+    Review
 )
 
 class BrandAddSerializer(serializers.ModelSerializer):
@@ -21,9 +23,10 @@ class BrandAddSerializer(serializers.ModelSerializer):
         return value
 
 
-class BrandListSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    logo = serializers.ImageField()
+class BrandListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = '__all__'
 
 
 class BrandDetailSerializer(serializers.ModelSerializer):
@@ -184,3 +187,92 @@ class CarDeleteSerializer(serializers.ModelSerializer):
         car.delete()
         return validated_data
 
+
+class ReviewAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']                                                                                                                                                                                                                                                                                                                                                                   
+
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id', None)
+        self.car_id = kwargs.pop('car_id', None)
+        super(ReviewAddSerializer, self).__init__(*args, **kwargs)
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        if instance.car:
+            response["car_name"] = instance.car.name
+        if instance.user:
+            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
+        return response
+
+    def validate_rating(self, value):
+        if not value:
+            raise serializers.ValidationError("Rating is required")
+        print(type(value))
+        if value > 5 and value < 0:
+            raise serializers.ValidationError("Rating should be less than 5 and more than 0")
+        return value
+
+    # def validate_car(self, value):
+    #     if not value:
+    #         raise serializers.ValidationError("Car instance is required")
+    #     if not Review.objects.filter(car=value).exists():
+    #         raise serializers.ValidationError("Car does not exist")
+    #     return value
+
+    def create(self, validated_data):
+        user = User.objects.get(id=self.user_id)
+        car = Car.objects.get(id=self.car_id)
+        validated_data['user'] = user
+        validated_data['car'] = car
+        return Review.objects.create(**validated_data)
+
+
+class ReviewListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        if instance.car:
+            response["car_name"] = instance.car.name
+        if instance.user:
+            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
+        return response
+    
+
+class ReviewDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+    
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        if instance.car:
+            response["car_name"] = instance.car.name
+        if instance.user:
+            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
+        return response
+
+
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+    def validate_rating(self, value):
+        if not value:
+            raise serializers.ValidationError("Rating is required")
+        if value > 5 and value < 0:
+            raise serializers.ValidationError("Rating should be less than 5 and more than 0")
+        return value
+
+
+class ReviewDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = []
+
+    

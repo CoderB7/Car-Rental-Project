@@ -162,7 +162,7 @@ UNFOLD = {
                     {
                         "title": _("Review"),
                         "icon": "engineering",
-                        "link": reverse_lazy("admin:users_review_changelist"),
+                        "link": reverse_lazy("admin:cars_review_changelist"),
                     },
                     {
                         "title": _("Blacklisted Tokens"),

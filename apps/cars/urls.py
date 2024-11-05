@@ -12,6 +12,11 @@ from apps.cars.api.views import (
     BrandUpdateView,
     BrandDeleteView,
     SearchView,
+    ReviewAddView,
+    CarReviewListView,
+    ReviewDetailView,
+    ReviewUpdateView,
+    ReviewDeleteView,
 )
 
 urlpatterns = [
@@ -28,5 +33,11 @@ urlpatterns = [
     path('brand/<uuid:id>/update/', BrandUpdateView.as_view(), name='brand-update'),
     path('brand/<uuid:id>/delete/', BrandDeleteView.as_view(), name='brand-delete'),
 
-    path('search/', SearchView.as_view(), name='car-search')
+    path('search/', SearchView.as_view(), name='car-search'),
+
+    path('<uuid:car_id>/review/add/', ReviewAddView.as_view(), name='review-create'),
+    path('<uuid:car_id>/review/list/', CarReviewListView.as_view(), name='car-review-list'),
+    path('<uuid:review_id>/review/detail/', ReviewDetailView.as_view(), name='car-review-detail'),
+    path('<uuid:review_id>/review/update/', ReviewUpdateView.as_view(), name='car-review-update'),
+    path('<uuid:review_id>/review/delete/', ReviewDeleteView.as_view(), name='car-review-delete'),
 ]

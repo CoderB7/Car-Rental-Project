@@ -3,6 +3,12 @@ from rest_framework import generics, status, permissions, filters
 from django.shortcuts import get_object_or_404
 
 from apps.shared.utils import success_response, error_response
+from auth.custom_permissions import (
+    IsSuperAdmin,
+    IsCompanyAdmin,
+    IsStaff,
+    IsUser
+)
 from ..models import Booking
 from .serializers import (
     CarBookingAddSerializer,
@@ -15,7 +21,7 @@ from .serializers import (
 
 
 class CarBookingAddListView(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
     serializer_class = None
 
     def get_serializer_class(self):
@@ -48,7 +54,7 @@ class CarBookingAddListView(generics.ListCreateAPIView):
 
 class CarBookingDetailUpdate(generics.RetrieveUpdateAPIView):
     queryset = Booking.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
     lookup_field = 'id'
 
     def get_serializer_class(self):
@@ -79,7 +85,7 @@ class CarBookingDetailUpdate(generics.RetrieveUpdateAPIView):
 class CarBookingDeleteView(generics.DestroyAPIView):
     queryset = Booking.objects.all()
     serializer_class = CarBookingDeleteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
 
     def delete(self, request, *args, **kwargs):
         booking_uuid = kwargs.get("id")

@@ -1,13 +1,15 @@
 import datetime
 import jwt
+from datetime import date
 
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth import authenticate
 
-from ..models import User, BlacklistedToken
+from ..models import User, BlacklistedToken, DriverLicence
 from .utils import generate_otp, is_otp_unique, send_otp_via_email, decrypt_access_token, decrypt_refresh_token, generate_jwt_token
 from apps.shared.redis_client import (
     set_otp, 
@@ -116,8 +118,6 @@ class UserSerializer(serializers.ModelSerializer):
         access_token, refresh_token = generate_jwt_token(payload)
         return access_token, refresh_token
 
-    
-    
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -246,3 +246,115 @@ class PasswordResetSerializer(serializers.Serializer):
             instance.set_password(new_password)
             instance.save()
         return instance
+
+
+class DriverLicenceAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DriverLicence
+        fields = '__all__'
+    
+    def __init__(self, *args, **kwargs):
+        self.user_id = kwargs.pop('user_id', None)
+        super(DriverLicenceAddSerializer, self).__init__(*args, **kwargs)
+
+    def validate_number(self, value):
+        if not value:
+            raise serializers.ValidationError("Driver licence number can not be empty.")
+        return value
+    
+    def validate_issuing_state(self, value):
+        if not value:
+            raise serializers.ValidationError("Issuing state cannot be empty.")
+        return value
+    
+    def validate_expiry_date(self, value):
+        if value <= date.today():
+            raise serializers.ValidationError("Expiry date must be in the future.")
+        return value
+
+    def validate_image(self, value):
+        if value:
+            if value.size > 2 * 1024 * 1024:
+                raise serializers.ValidationError("Image size must be under 2 MB.")
+            if not value.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                raise serializers.ValidationError("Unsupported file format.")
+        return value
+    
+    def validate(self, attrs):
+        if self.user_id is None:
+            raise serializers.ValidationError("User ID is required.")
+        return attrs
+    
+    def create(self, validated_data):
+        user = User.objects.get(id=self.user_id)
+        validated_data["user"] = user
+        return DriverLicence.objects.create(**validated_data)
+
+
+class DriverLicenceUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DriverLicence
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        print(response)
+        if instance.user:
+            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'    
+        return response
+    
+    def validate_number(self, value):
+        if not value:
+            raise serializers.ValidationError("Driver licence number can not be empty.")
+        return value
+    
+    def validate_issuing_state(self, value):
+        if not value:
+            raise serializers.ValidationError("Issuing state cannot be empty.")
+        return value
+    
+    def validate_expiry_date(self, value):
+        if value <= date.today():
+            raise serializers.ValidationError("Expiry date must be in the future.")
+        return value
+
+    def validate_image(self, value):
+        if value:
+            if value.size > 2 * 1024 * 1024:
+                raise serializers.ValidationError("Image size must be under 2 MB.")
+            if not value.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                raise serializers.ValidationError("Unsupported file format.")
+        return value
+    
+    
+class DriverLicenceDeleteSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField()
+
+    class Meta:
+        model = DriverLicence
+        fields = ['id']
+    
+    def validate_id(self, value):
+        if not value:
+            serializers.ValidationError("Driver Licence id is not provided")
+        return value
+    
+    def create(self, validated_data):
+        try:
+            driver_licence = DriverLicence.objects.get(id=validated_data.get('id'))
+        except DriverLicence.DoesNotExist:
+            raise NotFound("Driver Licence not found.")
+        driver_licence.delete()
+        return validated_data
+        
+
+class DriverLicenceDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DriverLicence
+        fields = '__all__'
+    
+    def to_representation(self, instance):
+        response = super().to_representation(instance)  
+        if instance.user:
+            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
+        return response    

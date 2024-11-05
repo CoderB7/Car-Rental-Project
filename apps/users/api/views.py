@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, NotFound
@@ -11,10 +13,19 @@ from .serializers import (
     CheckVerificationSerializer, 
     RefreshTokenSerializer,
     PasswordResetSerializer,
-    LogoutSerializer
+    LogoutSerializer,
+    DriverLicenceAddSerializer,
+    DriverLicenceUpdateSerializer,
+    DriverLicenceDeleteSerializer,
+    DriverLicenceDetailSerializer,
 )
-
-from ..models import User, BlacklistedToken
+from auth.custom_permissions import (
+    IsSuperAdmin,
+    IsCompanyAdmin,
+    IsStaff,
+    IsUser
+)
+from ..models import User, BlacklistedToken, DriverLicence
 from apps.shared.utils import success_response, error_response
 
 class SendVerification(generics.CreateAPIView):
@@ -59,7 +70,7 @@ class RegistrationView(generics.CreateAPIView):
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
     serializer_class = UserProfileSerializer
     
     def get_object(self):
@@ -76,7 +87,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
 
 class LogoutView(generics.CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
     serializer_class = LogoutSerializer
     
     def create(self, request):
@@ -133,7 +144,7 @@ class RefreshTokenView(generics.CreateAPIView):
 class PasswordResetView(generics.CreateAPIView):
     serializer_class = PasswordResetSerializer
     queryset = User.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
 
     def get_object(self):
         email = self.request.data.get('email')
@@ -152,5 +163,64 @@ class PasswordResetView(generics.CreateAPIView):
         serializer.update(user, serializer.validated_data)
         return success_response(
             message="Password updated successfully."
+        )
+
+
+class DriverLicenceAddView(generics.CreateAPIView):
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
+    serializer_class = DriverLicenceAddSerializer
+
+    def create(self, request):
+        user_id = self.request.user.id
+        serializer = self.get_serializer(data=request.data, user_id=user_id)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(
+            data=serializer.data,
+            message='Successfully added Driver Licence',
+        )
+
+
+class DriverLicenceUpdateView(generics.UpdateAPIView):
+    queryset = DriverLicence.objects.all()
+    serializer_class = DriverLicenceUpdateSerializer
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(message="Driver Licence object updated successfully", data=serializer.data)
+    
+
+class DriverLicenceDeleteView(generics.DestroyAPIView):
+    queryset = DriverLicence.objects.all()
+    serializer_class = DriverLicenceDeleteSerializer
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
+
+    def delete(self, request, *args, **kwargs):
+        driver_licence_uuid = kwargs.get('id')
+        serializer = self.get_serializer(data={"id": driver_licence_uuid})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(message="Driver Licence deleted successfully")
+
+
+class DriverLicenceDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
+    serializer_class = DriverLicenceDetailSerializer
+
+    def get_object(self):
+        driver_licence_uuid = self.kwargs.get('id')
+        return get_object_or_404(DriverLicence, id=driver_licence_uuid)
+
+    def retrieve(self, request, *args, **kwargs):
+        driver_licence = self.get_object()
+        serializer = self.get_serializer(driver_licence)
+        return success_response(
+            data=serializer.data,
+            message='Driver Licence details'
         )
 

@@ -7,6 +7,12 @@ class EnumBaseModel(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+class UserRoleChoices(EnumBaseModel):
+    SUPER_ADMIN = "super_admin"
+    COMPANY_ADMIN = "company_admin"
+    STAFF = "staff"
+    USER = "user"
+
 class TransmissionChoices(EnumBaseModel):
     MANUAL = "manual"
     AUTOMATIC = "automatic"

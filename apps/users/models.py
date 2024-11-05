@@ -8,11 +8,12 @@ from django.core.exceptions import ValidationError
 from apps.users.managers import UserManager
 from apps.shared.models import BaseModel
 from apps.shared.utils import process_image, process_document
-from apps.cars.models import Car
+from apps.shared.enums import UserRoleChoices
 
 
 class User(AbstractUser, BaseModel):
     email = models.EmailField(unique=True, blank=False)
+    role = models.CharField(max_length=40, choices=UserRoleChoices.choices(), default=UserRoleChoices.USER.value)
 
     date_of_birth = models.DateField(null=True, blank=True)
     first_name = models.CharField(max_length=128)
@@ -67,7 +68,7 @@ class DriverLicence(BaseModel):
     number = models.CharField(max_length=32, unique=True)
     issuing_state = models.CharField(max_length=64)
     expiry_date = models.DateField()
-    image = models.ImageField(upload_to='user/driver_licence/', blank=True, null=True)
+    image = models.FileField(upload_to='driver_licence/', blank=True, null=True)
     
     def __str__(self):
         return f'{self.user} - {self.number}'
@@ -77,20 +78,42 @@ class DriverLicence(BaseModel):
         verbose_name = ('Driver Licence')
         verbose_name_plural = ('Driver Licences')
 
+    def save(self, *args, **kwargs):
+        try:
+            old_instance = DriverLicence.objects.get(pk=self.pk)
+            old_image = old_instance.image
+        except DriverLicence.DoesNotExist:
+            old_image = None
 
-class Review(BaseModel):
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    rating = models.DecimalField(max_digits=2, decimal_places=1)
-    comment = models.TextField()
+        
+        if self.image:
+            ext = os.path.splitext(self.image.name)[1].lower()
+            if ext in ['.jpg', '.jpeg', '.png']:
+                new_filename, processed_image = process_image(self.image, new_width=800, new_height=800)
+                new_filename = f"{new_filename.rsplit('.', 1)[0]}_{self.id}.jpg"
+                print(new_filename)
+                self.image.save(new_filename, processed_image, save=False)
+            else:
+                new_filename, file = process_document(self.image, self.id)
+                self.image.save(new_filename, file, save=False)
+        else:
+            self.image = old_image
 
-    def __str__(self):
-        return f'Review by {self.user.email} for {self.car.license_plate}'
+        try:
+            super(DriverLicence, self).save(*args, **kwargs)   
+        except Exception as e:
+            print(f"Error in super().save(): {e}")
+        
+        # Delete the old image if a new one has been uploaded
+        if old_image and self.image != old_image:
+            old_image.delete(save=False)
 
-    class Meta:
-        db_table = "review"
-        verbose_name = ('Review')
-        verbose_name_plural = ('Reviews')
+    def delete(self, *args, **kwargs):
+        # check if the file exists and delete it
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+        super(DriverLicence, self).delete(*args, **kwargs)
 
 
 class BlacklistedToken(BaseModel):

@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, Group
 
 from unfold.admin import ModelAdmin
 
-from .models import User, DriverLicence, Review, BlacklistedToken
+from .models import User, DriverLicence, BlacklistedToken
 
 admin.site.unregister(Group)
 
@@ -17,7 +17,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     change_password_form = AdminPasswordChangeForm
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name", "address")}),
+        ("Personal info", {"fields": ("first_name", "last_name", "address", "role")}),
         ("Passport info", {"fields": ("passport_number", "passport_file")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
@@ -54,18 +54,6 @@ class DriverLicenceAdmin(ModelAdmin):
     )
     search_fields = ('user', 'number', 'expiry_date')
     ordering = ('-id',)
-
-
-@admin.register(Review)
-class ReviewAdmin(ModelAdmin):
-    fieldsets = (
-        (None, {"fields": ("user", "car", "rating", "comment")}),
-    )
-    list_display = ("id", "user", "car", "rating")
-    list_display_links = ("id", "user", "car")
-    list_filter = ("rating",)
-    search_fields = ("user", "car")
-    ordering = ("-id", )
 
 
 @admin.register(BlacklistedToken)
