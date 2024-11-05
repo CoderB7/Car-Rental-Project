@@ -170,12 +170,12 @@ class LogoutSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError({'error': str(e)})
         return validated_data
+    
 
-class UserProfileSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    first_name = serializers.CharField(max_length=150)
-    last_name = serializers.CharField(max_length=150)
-    date_of_birth = serializers.DateField()
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
 
 
 class RefreshTokenSerializer(serializers.Serializer):
@@ -298,7 +298,6 @@ class DriverLicenceUpdateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        print(response)
         if instance.user:
             response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'    
         return response

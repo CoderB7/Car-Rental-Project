@@ -24,10 +24,18 @@ class Brand(BaseModel):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.logo:
+        try:
+            old_instance = Brand.objects.get(pk=self.pk)
+            old_logo = old_instance.logo
+        except Brand.DoesNotExist:
+            old_logo = None
+
+        if self.logo and self.logo != old_logo:
             new_filename, processed_logo = process_logo(self.logo, new_width=400, new_height=400)
             self.logo.save(new_filename, processed_logo, save=False)
-        
+        else:
+            if old_logo:
+                self.image = old_logo
         try:
             super().save(*args, **kwargs)
         except Exception as e:
@@ -65,10 +73,19 @@ class Car(BaseModel):
         return f'{self.name} - {self.brand.name}'
     
     def save(self, *args, **kwargs):
-        if self.image:
+        try:
+            old_instance = Car.objects.get(pk=self.pk)
+            old_image = old_instance.image
+        except Car.DoesNotExist:
+            old_image = None
+
+        if self.image and self.image != old_image:
             new_filename, processed_image = process_image(self.image, new_width=800, new_height=800)
             # Save the BytesIO object to the ImageField with the new filename
             self.image.save(new_filename, processed_image, save=False)
+        else:
+            if old_image:
+                self.image = old_image
         try:
             super().save(*args, **kwargs)
         except Exception as e:

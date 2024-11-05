@@ -83,7 +83,25 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             data=serializer.data,
             message='User profile'
         )
-        
+
+
+class UserProfileUpdateView(generics.UpdateAPIView):
+    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(
+            data=serializer.data,
+            message="User profile updated"
+        )
+
 
 
 class LogoutView(generics.CreateAPIView):

@@ -42,10 +42,12 @@ def process_image(image, new_width, new_height):
         temp_img = BytesIO()
         img.save(temp_img, format="JPEG", quality=100, optimize=True)
         temp_img.seek(0)
+
         # Change file extension to .jpg
+        base_name = os.path.basename(image.name)
         if '.' in image.name:
-            image.name = image.name.rsplit('.', 1)[0]
-        new_filename = f"{image.name}.jpg"
+            base_name = base_name.rsplit('.', 1)[0]
+        new_filename = f"{base_name}.jpg"
         return new_filename, ContentFile(temp_img.read())
         
 
@@ -87,5 +89,5 @@ def process_document(file, user_id):
     if '.' in file.name:
         original_name = file.name.rsplit('.', 1)[0]
     
-    new_filename = f"{original_name}_{user_id}.{ext}"
+    new_filename = f"{original_name}.{ext}"
     return new_filename, file

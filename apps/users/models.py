@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from apps.users.managers import UserManager
 from apps.shared.models import BaseModel
@@ -40,15 +41,30 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = ('Users')
 
     def save(self, *args, **kwargs):
-        if self.passport_file:
+        try:
+            old_instance = User.objects.get(pk=self.pk)
+            old_passport_file = old_instance.image
+        except DriverLicence.DoesNotExist:
+            old_passport_file = None
+
+        if self.passport_file and self.passport_file != old_passport_file:
             ext = os.path.splitext(self.passport_file.name)[1].lower()
             if ext in ['.jpg', '.jpeg', '.png']:
                 new_filename, processed_image = process_image(self.passport_file, new_width=800, new_height=800)
-                new_filename = f"{new_filename.rsplit('.', 1)[0]}_{self.id}.jpg"
+                # Ensure new filename does not append ID multiple times
+                if new_filename.endswith(f"_{self.passport_file.instance.id}"):
+                    new_filename = f"{new_filename}_{self.passport_file.instance.id}.jpg"
                 self.passport_file.save(new_filename, processed_image, save=False)
             else:
                 new_filename, file = process_document(self.passport_file, self.id)
+                # Ensure new filename does not append ID multiple times
+                if new_filename.endswith(f"_{self.passport_file.instance.id}"):
+                    new_filename = f"{new_filename}_{self.passport_file.instance.id}.jpg"
                 self.passport_file.save(new_filename, file, save=False)
+        else:
+            # If image is not updated, keep the old image
+            if old_passport_file:
+                self.passport_file = old_passport_file
         try:
             super().save(*args, **kwargs)   
         except Exception as e:
@@ -60,7 +76,7 @@ class User(AbstractUser, BaseModel):
             if os.path.isfile(self.passport_file.path):
                 os.remove(self.passport_file.path)
         super().delete(*args, **kwargs)
-    
+
 
 class DriverLicence(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='driver_licence')
@@ -68,7 +84,7 @@ class DriverLicence(BaseModel):
     number = models.CharField(max_length=32, unique=True)
     issuing_state = models.CharField(max_length=64)
     expiry_date = models.DateField()
-    image = models.FileField(upload_to='driver_licence/', blank=True, null=True)
+    image = models.FileField(upload_to='driver_licence/', blank=True, null=True, max_length=255)
     
     def __str__(self):
         return f'{self.user} - {self.number}'
@@ -84,29 +100,30 @@ class DriverLicence(BaseModel):
             old_image = old_instance.image
         except DriverLicence.DoesNotExist:
             old_image = None
-
         
-        if self.image:
+        if self.image and self.image != old_image:
             ext = os.path.splitext(self.image.name)[1].lower()
             if ext in ['.jpg', '.jpeg', '.png']:
                 new_filename, processed_image = process_image(self.image, new_width=800, new_height=800)
-                new_filename = f"{new_filename.rsplit('.', 1)[0]}_{self.id}.jpg"
-                print(new_filename)
+                # Ensure new filename does not append ID multiple times
+                if new_filename.endswith(f"_{self.image.instance.id}"):
+                    new_filename = f"{new_filename}_{self.image.instance.id}.jpg"
                 self.image.save(new_filename, processed_image, save=False)
             else:
                 new_filename, file = process_document(self.image, self.id)
+                # Ensure new filename does not append ID multiple times
+                if new_filename.endswith(f"_{self.image.instance.id}"):
+                    new_filename = f"{new_filename}_{self.image.instance.id}.jpg"
                 self.image.save(new_filename, file, save=False)
         else:
-            self.image = old_image
-
+            # If image is not updated, keep the old image
+            if old_image:
+                self.image = old_image
         try:
-            super(DriverLicence, self).save(*args, **kwargs)   
+            super().save(*args, **kwargs)
         except Exception as e:
             print(f"Error in super().save(): {e}")
-        
-        # Delete the old image if a new one has been uploaded
-        if old_image and self.image != old_image:
-            old_image.delete(save=False)
+
 
     def delete(self, *args, **kwargs):
         # check if the file exists and delete it
