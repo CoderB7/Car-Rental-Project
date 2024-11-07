@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, Group
 
 from unfold.admin import ModelAdmin
 
-from .models import User, DriverLicence, BlacklistedToken
+from .models import User, DriverLicence, BlacklistedToken, Review
 
 admin.site.unregister(Group)
 
@@ -54,6 +54,18 @@ class DriverLicenceAdmin(ModelAdmin):
     )
     search_fields = ('user', 'number', 'expiry_date')
     ordering = ('-id',)
+
+
+@admin.register(Review)
+class ReviewAdmin(ModelAdmin):
+    fieldsets = (
+        (None, {"fields": ("user", "car", "rating", "comment")}),
+    )
+    list_display = ("id", "user", "car", "rating")
+    list_display_links = ("id", "user", "car")
+    list_filter = ("rating",)
+    search_fields = ("user", "car")
+    ordering = ("-id", )
 
 
 @admin.register(BlacklistedToken)

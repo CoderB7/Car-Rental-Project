@@ -148,22 +148,25 @@ class CarBookingUpdateSerializer(serializers.ModelSerializer):
 
 
 class CarBookingDeleteSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField()
-
     class Meta:
         model = Booking
-        fields = ['id']
+        fields = []
+    # id = serializers.UUIDField()
+
+    # class Meta:
+    #     model = Booking
+    #     fields = ['id']
     
-    def validate_id(self, value):
-        if not value:
-            serializers.ValidationError("Booking id is not provided")
-        return value
+    # def validate_id(self, value):
+    #     if not value:
+    #         serializers.ValidationError("Booking id is not provided")
+    #     return value
     
-    def create(self, validated_data):
-        try:
-            booking = Booking.objects.get(id=validated_data.get('id'))
-        except Booking.DoesNotExist:
-            raise NotFound("Booking not found.")
-        booking.delete()
-        return validated_data
+    # def create(self, validated_data):
+    #     try:
+    #         booking = Booking.objects.get(id=validated_data.get('id'))
+    #     except Booking.DoesNotExist:
+    #         raise NotFound("Booking not found.")
+    #     booking.delete()
+    #     return validated_data
     

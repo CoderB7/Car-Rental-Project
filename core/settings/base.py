@@ -60,7 +60,6 @@ CUSTOM_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
-    #"drf_yasg",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "rosetta",
@@ -104,6 +103,7 @@ SPECTACULAR_SETTINGS = {
     'SECURITY': [{'CustomJWT': []}],
     # OTHER SETTINGS
     "EXCLUDE_PATH": [reverse_lazy("schema")],
+    "SCHEMA_PATH_PREFIX": r"/api/"
 }
 
 MIDDLEWARE = [
@@ -146,7 +146,7 @@ DATABASES = {
         "ENGINE": 'django.db.backends.postgresql_psycopg2',
         "NAME": env.str("DB_NAME"),
         "USER": env.str("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
+        "PASSWORD": env.str("DB_PASSWORD"),
         "HOST": env.str("DB_HOST"),
         "PORT": env.str("DB_PORT"),
     }
@@ -205,7 +205,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CACHES = {
     'default': {
         "BACKEND": 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6380/1',  # Use the appropriate Redis server URL
+        'LOCATION': 'redis://redis:6379/1',  # Use the appropriate Redis server URL
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
@@ -231,8 +231,8 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 # Celery
-CELERY_BROKER_URL = 'redis://localhost:6380/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6380/0'
+CELERY_BROKER_URL = 'redis://redis:6379/1'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

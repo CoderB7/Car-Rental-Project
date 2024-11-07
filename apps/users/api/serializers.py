@@ -327,24 +327,27 @@ class DriverLicenceUpdateSerializer(serializers.ModelSerializer):
     
     
 class DriverLicenceDeleteSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField()
-
     class Meta:
         model = DriverLicence
-        fields = ['id']
+        fields = []
+    # id = serializers.UUIDField()
+
+    # class Meta:
+    #     model = DriverLicence
+    #     fields = ['id']
     
-    def validate_id(self, value):
-        if not value:
-            serializers.ValidationError("Driver Licence id is not provided")
-        return value
+    # def validate_id(self, value):
+    #     if not value:
+    #         serializers.ValidationError("Driver Licence id is not provided")
+    #     return value
     
-    def create(self, validated_data):
-        try:
-            driver_licence = DriverLicence.objects.get(id=validated_data.get('id'))
-        except DriverLicence.DoesNotExist:
-            raise NotFound("Driver Licence not found.")
-        driver_licence.delete()
-        return validated_data
+    # def create(self, validated_data):
+    #     try:
+    #         driver_licence = DriverLicence.objects.get(id=validated_data.get('id'))
+    #     except DriverLicence.DoesNotExist:
+    #         raise NotFound("Driver Licence not found.")
+    #     driver_licence.delete()
+    #     return validated_data
         
 
 class DriverLicenceDetailSerializer(serializers.ModelSerializer):

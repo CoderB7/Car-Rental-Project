@@ -4,7 +4,6 @@ from django.db import models
 from tempfile import NamedTemporaryFile
 from rest_framework import status
 
-from apps.users.models import User
 from apps.shared.models import BaseModel
 from apps.shared.enums import TransmissionChoices, FuelTypeChoices, CarTypeChoices
 from apps.shared.utils import process_image, process_logo
@@ -99,16 +98,3 @@ class Car(BaseModel):
         super().delete(*args, **kwargs)
 
 
-class Review(BaseModel):
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    rating = models.DecimalField(max_digits=2, decimal_places=1)
-    comment = models.TextField()
-
-    def __str__(self):
-        return f'Review by {self.user.email} for {self.car.license_plate}'
-
-    class Meta:
-        db_table = "review"
-        verbose_name = ('Review')
-        verbose_name_plural = ('Reviews')

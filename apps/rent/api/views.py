@@ -31,7 +31,7 @@ class CarBookingAddListView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         return Booking.objects.all()
-
+    
     def create(self, request):
         user_id = self.request.user.id
         serializer = self.get_serializer(data=request.data, user_id=user_id)
@@ -45,21 +45,21 @@ class CarBookingAddListView(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        print('entered')
         return success_response(
             data=serializer.data,
             message='List of Car Bookings'
         )
 
 
-class CarBookingDetailUpdate(generics.RetrieveUpdateAPIView):
+class CarBookingDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Booking.objects.all()
     permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-    lookup_field = 'id'
-
+    
     def get_serializer_class(self):
         if self.request.method == "GET":
             return CarBookingDetailSerializer
+        elif self.request.method == "DELETE":
+            return CarBookingDeleteSerializer
         return CarBookingUpdateSerializer
 
     def get_object(self):
@@ -81,18 +81,25 @@ class CarBookingDetailUpdate(generics.RetrieveUpdateAPIView):
         serializer.save()
         return success_response(message="Car Booking object updated successfully", data=serializer.data)
 
-
-class CarBookingDeleteView(generics.DestroyAPIView):
-    queryset = Booking.objects.all()
-    serializer_class = CarBookingDeleteSerializer
-    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-
     def delete(self, request, *args, **kwargs):
-        booking_uuid = kwargs.get("id")
-        serializer = self.get_serializer(data={"id": booking_uuid})
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        self.perform_destroy(instance)
         return success_response(message="Booking deleted successfully")
+
+
+# class CarBookingDeleteView(generics.DestroyAPIView):
+#     queryset = Booking.objects.all()
+#     serializer_class = CarBookingDeleteSerializer
+#     permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
+
+#     def delete(self, request, *args, **kwargs):
+#         booking_uuid = kwargs.get("id")
+#         serializer = self.get_serializer(data={"id": booking_uuid})
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+#         return success_response(message="Booking deleted successfully")
 
 
 

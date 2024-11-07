@@ -184,9 +184,13 @@ class PasswordResetView(generics.CreateAPIView):
         )
 
 
-class DriverLicenceAddView(generics.CreateAPIView):
+class DriverLicenceAddView(generics.ListCreateAPIView):
     permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-    serializer_class = DriverLicenceAddSerializer
+    serializer_class = None
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return DriverLicenceAddSerializer
 
     def create(self, request):
         user_id = self.request.user.id
@@ -199,36 +203,16 @@ class DriverLicenceAddView(generics.CreateAPIView):
         )
 
 
-class DriverLicenceUpdateView(generics.UpdateAPIView):
+class DriverLicenceDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DriverLicence.objects.all()
-    serializer_class = DriverLicenceUpdateSerializer
     permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-    lookup_field = 'id'
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return success_response(message="Driver Licence object updated successfully", data=serializer.data)
     
-
-class DriverLicenceDeleteView(generics.DestroyAPIView):
-    queryset = DriverLicence.objects.all()
-    serializer_class = DriverLicenceDeleteSerializer
-    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-
-    def delete(self, request, *args, **kwargs):
-        driver_licence_uuid = kwargs.get('id')
-        serializer = self.get_serializer(data={"id": driver_licence_uuid})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return success_response(message="Driver Licence deleted successfully")
-
-
-class DriverLicenceDetailView(generics.RetrieveAPIView):
-    permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-    serializer_class = DriverLicenceDetailSerializer
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return DriverLicenceDetailSerializer
+        elif self.request.method == "DELETE":
+            return DriverLicenceDeleteSerializer
+        return DriverLicenceUpdateSerializer
 
     def get_object(self):
         driver_licence_uuid = self.kwargs.get('id')
@@ -242,3 +226,16 @@ class DriverLicenceDetailView(generics.RetrieveAPIView):
             message='Driver Licence details'
         )
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(message="Driver Licence object updated successfully", data=serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_destroy(instance)
+        return success_response(message="Driver Licence deleted successfully")

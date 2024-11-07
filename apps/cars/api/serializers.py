@@ -3,13 +3,12 @@ from datetime import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
-from apps.users.models import User
+from apps.users.models import User, Review
 from ..models import ( 
-    TransmissionChoices, 
     Brand, 
-    Car,
-    Review
+    Car
 )
+
 
 class BrandAddSerializer(serializers.ModelSerializer):
     class Meta:
@@ -60,25 +59,9 @@ class BrandUpdateSerializer(serializers.ModelSerializer):
     
 
 class BrandDeleteSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField()
-
     class Meta:
         model = Brand
-        fields = ['id']
-    
-    def validate_id(self, value):
-        if not value:
-            raise serializers.ValidationError('Brand id is not provided')
-        return value
-    
-    def create(self, validated_data):
-        try:
-            brand = Brand.objects.get(id=validated_data.get('id'))
-        except Brand.DoesNotExist:
-            raise NotFound("Brand not found.")
-        brand.delete()
-        return validated_data
-
+        fields = []
 
 
 class CarAddSerializer(serializers.ModelSerializer):
@@ -168,24 +151,9 @@ class CarUpdateSerializer(serializers.ModelSerializer):
 
 
 class CarDeleteSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField()
-
     class Meta:
         model = Car
-        fields = ['id']
-    
-    def validate_id(self, value):
-        if not value:
-            raise serializers.ValidationError("Car id is not provided")
-        return value
-
-    def create(self, validated_data):
-        try:
-            car = Car.objects.get(id=validated_data.get('id'))
-        except Car.DoesNotExist:
-            raise NotFound("Car not found.")
-        car.delete()
-        return validated_data
+        fields = []
 
 
 class ReviewAddSerializer(serializers.ModelSerializer):

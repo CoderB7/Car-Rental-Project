@@ -10,7 +10,7 @@ from apps.users.managers import UserManager
 from apps.shared.models import BaseModel
 from apps.shared.utils import process_image, process_document
 from apps.shared.enums import UserRoleChoices
-
+from apps.cars.models import Car
 
 class User(AbstractUser, BaseModel):
     email = models.EmailField(unique=True, blank=False)
@@ -41,11 +41,16 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = ('Users')
 
     def save(self, *args, **kwargs):
+        is_enter = True
+        old_passport_file = None
         try:
             old_instance = User.objects.get(pk=self.pk)
-            old_passport_file = old_instance.image
+            old_passport_file = old_instance.passport_file
         except DriverLicence.DoesNotExist:
             old_passport_file = None
+        except User.DoesNotExist:
+            is_enter = False
+
 
         if self.passport_file and self.passport_file != old_passport_file:
             ext = os.path.splitext(self.passport_file.name)[1].lower()
@@ -61,7 +66,7 @@ class User(AbstractUser, BaseModel):
                 if new_filename.endswith(f"_{self.passport_file.instance.id}"):
                     new_filename = f"{new_filename}_{self.passport_file.instance.id}.jpg"
                 self.passport_file.save(new_filename, file, save=False)
-        else:
+        elif is_enter:
             # If image is not updated, keep the old image
             if old_passport_file:
                 self.passport_file = old_passport_file
@@ -131,6 +136,21 @@ class DriverLicence(BaseModel):
             if os.path.isfile(self.image.path):
                 os.remove(self.image.path)
         super(DriverLicence, self).delete(*args, **kwargs)
+
+
+class Review(BaseModel):
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.DecimalField(max_digits=2, decimal_places=1)
+    comment = models.TextField()
+
+    def __str__(self):
+        return f'Review by {self.user.email} for {self.car.license_plate}'
+
+    class Meta:
+        db_table = "review"
+        verbose_name = ('Review')
+        verbose_name_plural = ('Reviews')
 
 
 class BlacklistedToken(BaseModel):

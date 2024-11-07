@@ -10,9 +10,7 @@ from apps.users.api.views import (
         RefreshTokenView,
         PasswordResetView, 
         DriverLicenceAddView,
-        DriverLicenceUpdateView,
-        DriverLicenceDeleteView,
-        DriverLicenceDetailView
+        DriverLicenceDetailUpdateDeleteView
     )
 from apps.cars.api.views import (
     UserReviewListView,
@@ -29,11 +27,9 @@ urlpatterns = [
     path('logout/', LogoutView.as_view()),
     
     path('register/driver_licence/', DriverLicenceAddView.as_view(), name='add-driver-licence'),
-    path('register/driver_licence/<uuid:id>/update/', DriverLicenceUpdateView.as_view(), name='update-driver-licence'),
-    path('register/driver_licence/<uuid:id>/delete/', DriverLicenceDeleteView.as_view(), name='delete-driver-licence'),
-    path('register/driver_licence/<uuid:id>/detail/', DriverLicenceDetailView.as_view(), name='detail-driver-licence'),
+    path('register/driver_licence/<uuid:id>/', DriverLicenceDetailUpdateDeleteView.as_view(), name='update-driver-licence'),
 
     path("profile/", UserProfileView.as_view(), name="user_profile"),
-    path("profile/update/", UserProfileUpdateView.as_view(), name='user_profile_update'),
+    path("profile/", UserProfileUpdateView.as_view(), name='user_profile_update'),
     path('profile/reviews/', UserReviewListView.as_view(), name='user-reviews')
 ]
