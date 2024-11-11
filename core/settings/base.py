@@ -262,3 +262,7 @@ OTP_LIFETIME = env.str("OTP_LIFETIME")
 REDIS_HOST=env.str("REDIS_HOST")
 REDIS_PORT=env.str("REDIS_PORT")
 REDIS_DB=env.str("REDIS_DB")
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+]
