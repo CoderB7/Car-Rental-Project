@@ -186,11 +186,7 @@ class PasswordResetView(generics.CreateAPIView):
 
 class DriverLicenceAddView(generics.ListCreateAPIView):
     permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
-    serializer_class = None
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return DriverLicenceAddSerializer
+    serializer_class = DriverLicenceAddSerializer
 
     def create(self, request):
         user_id = self.request.user.id
