@@ -184,7 +184,7 @@ class PasswordResetView(generics.CreateAPIView):
         )
 
 
-class DriverLicenceAddView(generics.ListCreateAPIView):
+class DriverLicenceAddView(generics.CreateAPIView):
     permission_classes = [IsSuperAdmin | IsCompanyAdmin | IsStaff | IsUser]
     serializer_class = DriverLicenceAddSerializer
 

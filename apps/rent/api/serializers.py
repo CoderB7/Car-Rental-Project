@@ -1,4 +1,4 @@
-import pytz
+import pytz # type: ignore
 from datetime import datetime
 
 from django.utils import timezone
@@ -29,18 +29,6 @@ class CarBookingAddSerializer(serializers.ModelSerializer):
         model = Booking
         fields = ['car', 'pickup_location', 'dropoff_location', 'total_cost', 'rental_start', 'rental_end', 'status', 'agreement_signed']
 
-    def __init__(self, *args, **kwargs):
-        self.user_id = kwargs.pop('user_id', None)
-        super(CarBookingAddSerializer, self).__init__(*args, **kwargs)
-
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        if instance.car:
-            response["car_name"] = instance.car.name
-        if instance.user:
-            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
-        return response
-
     def validate_rental_start(self, value):
         if not value:
             raise serializers.ValidationError('Rental start date is required')
@@ -58,41 +46,20 @@ class CarBookingAddSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        user = request.user
         rental_start = attrs.get('rental_start', None)
         rental_end = attrs.get('rental_end', None)
         car_id = attrs.get('car', None)
-
-        # Check if the user_id is available
-        if self.user_id is None:
-            raise serializers.ValidationError("User ID is required.")
         
-        if Booking.objects.filter(user=self.user_id, car=car_id).exists():
+        if Booking.objects.filter(user=user.id, car=car_id).exists():
             raise serializers.ValidationError("Already booked")
         if rental_end < rental_start:
             raise serializers.ValidationError('Rental end time must be later than the rental start time')
         return attrs
 
-    def create(self, validated_data):
-        user = User.objects.get(id=self.user_id)
-        validated_data['user'] = user
-        return Booking.objects.create(**validated_data)
 
-
-class CarBookingListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Booking
-        fields = '__all__'
-    
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        if instance.car:
-            response["car_name"] = instance.car.name
-        if instance.user:
-            response["user_name"] = f'{instance.user.first_name} {instance.user.last_name}'
-        return response
-
-
-class CarBookingDetailSerializer(serializers.ModelSerializer):
+class CarBookingDetailListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = '__all__'
@@ -146,27 +113,4 @@ class CarBookingUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Rental end time must be later than the rental start time')
         return attrs
 
-
-class CarBookingDeleteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Booking
-        fields = []
-    # id = serializers.UUIDField()
-
-    # class Meta:
-    #     model = Booking
-    #     fields = ['id']
-    
-    # def validate_id(self, value):
-    #     if not value:
-    #         serializers.ValidationError("Booking id is not provided")
-    #     return value
-    
-    # def create(self, validated_data):
-    #     try:
-    #         booking = Booking.objects.get(id=validated_data.get('id'))
-    #     except Booking.DoesNotExist:
-    #         raise NotFound("Booking not found.")
-    #     booking.delete()
-    #     return validated_data
     
