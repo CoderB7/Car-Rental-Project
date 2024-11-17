@@ -15,14 +15,14 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        secrets:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U ${{ secrets.DB_USER }}" 
+          --health-cmd="pg_isready -U postgres" 
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -39,14 +39,24 @@ jobs:
           docker build --tag your-image-name:latest .
 
       - name: Install sshpass
-        run: sudo apt-get install sshpass
+        run: sudo apt-get install -y sshpass
 
       - name: Deploy to your server
         env:
           SSH_PASS: ${{ secrets.SSH_PASS }}
+          USER: ${{ secrets.USER }}
+          IP: ${{ secrets.IP }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
         run: |
-          sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
           cd /path/to/your/project
+          export POSTGRES_USER=$DB_USER
+          export POSTGRES_PASSWORD=$DB_PASSWORD
+          export POSTGRES_DB=$DB_NAME
           docker-compose down
           docker-compose up -d --build
           EOF
+
+
