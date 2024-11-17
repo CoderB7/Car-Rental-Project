@@ -43,14 +43,14 @@ jobs:
 
       - name: Deploy to your server
         env:
-          SSH_PASS: ${{ secrets.SSH_PASS }}
-          USER: ${{ secrets.USER }}
-          IP: ${{ secrets.IP }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
-          sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
+          sshpass -e ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
           cd /path/to/your/project
           export POSTGRES_USER=$DB_USER
           export POSTGRES_PASSWORD=$DB_PASSWORD
@@ -58,5 +58,5 @@ jobs:
           docker-compose down
           docker-compose up -d --build
           EOF
-
+      
 
