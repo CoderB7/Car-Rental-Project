@@ -34,13 +34,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         run: |
           docker build --tag your-image-name:latest .
 
+      - name: Install sshpass
+        run: sudo apt-get install sshpass
+
       - name: Deploy to your server
+        env:
+          SSH_PASS: ${{ secrets.SSH_PASS }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /path/to/your/project
           docker-compose down
           docker-compose up -d --build
