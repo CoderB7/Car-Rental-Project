@@ -51,7 +51,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
-          cd /path/to/your/project
+          cd /var/www/car_rental
           export POSTGRES_USER=$DB_USER
           export POSTGRES_PASSWORD=$DB_PASSWORD
           export POSTGRES_DB=$DB_NAME
