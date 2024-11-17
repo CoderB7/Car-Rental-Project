@@ -43,7 +43,7 @@ jobs:
 
       - name: Deploy to your server
         env:
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           DB_USER: ${{ secrets.DB_USER }}
