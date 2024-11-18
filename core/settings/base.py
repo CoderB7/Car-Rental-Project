@@ -103,7 +103,7 @@ SPECTACULAR_SETTINGS = {
     'CONTACT': {'email': 'info@carrental.group'},
     'LICENSE': {'name': 'BSD License'},
     'SERVE_PUBLIC': True,
-    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAuthenticated'],
     'GENERATOR_CLASS': 'core.schema.BothHttpAndHttpsSchemaGenerator',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
