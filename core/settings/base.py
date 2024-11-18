@@ -35,8 +35,20 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.str("DEBUG")
 
-ALLOWED_HOSTS = ["*"]
-
+ALLOWED_HOSTS = ["localhost", "car-rental.userb.uz"]
+CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://car-rental.userb.uz",
+    "http://car-rental.userb.uz",
+    "http://localhost:8000",
+]
+CORS_ALLOWED_ORIGINS = [
+    "https://car-rental.userb.uz",
+    "http://car-rental.userb.uz",
+    "http://localhost:8000",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = False
 # Application definition
 
 DJANGO_APPS = [
@@ -171,6 +183,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = '/admin/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
