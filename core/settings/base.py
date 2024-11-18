@@ -100,7 +100,14 @@ SPECTACULAR_SETTINGS = {
     'PREPROCESSING_HOOKS': [
         'core.hooks.remove_apis_from_list',
     ],
-    'SECURITY': [{'CustomJWT': []}],
+    'SECURITY': [{'BearerAuth': []}, {'CustomJWT': []}],
+    'SECURITY_DEFINITIONS': {
+        'BearerAuth': {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        },
+    },
     # OTHER SETTINGS
     "EXCLUDE_PATH": [reverse_lazy("schema")],
     "SCHEMA_PATH_PREFIX": r"/api/"
