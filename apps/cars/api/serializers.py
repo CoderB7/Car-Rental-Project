@@ -9,6 +9,7 @@ from ..models import (
     Car
 )
 
+
 class BrandAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
