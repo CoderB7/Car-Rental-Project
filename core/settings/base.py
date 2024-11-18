@@ -112,6 +112,19 @@ SPECTACULAR_SETTINGS = {
     'PREPROCESSING_HOOKS': [
         'core.hooks.remove_apis_from_list',
     ],
+
+    # Authentication
+    'SERVE_AUTHENTICATION': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+     # UI Settings
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+    },
+
     'SECURITY': [{'CustomJWT': []}],
     # OTHER SETTINGS
     "EXCLUDE_PATH": [reverse_lazy("schema")],

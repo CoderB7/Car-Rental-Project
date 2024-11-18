@@ -9,17 +9,13 @@ from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from core.authentication import CustomJWTAuthentication
 
 
-class SecureSwaggerView(LoginRequiredMixin, SpectacularSwaggerView):
-    login_url = '/admin/'
-
-
 swagger_urlpatterns = [
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
-    path('api/schema/swagger-ui/', SecureSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/swagger-ui/', SpectacularAPIView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    re_path(r'^swagger/$', SecureSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    re_path(r'^swagger/$', SpectacularAPIView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 
