@@ -5,38 +5,40 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from rest_framework import permissions
 from rest_framework.authentication import BasicAuthentication
 
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.generators import BaseSchemaGenerator
 from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from core.authentication import CustomJWTAuthentication
 
 
+class CustomSwaggerView(SpectacularSwaggerView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+
+
 swagger_urlpatterns = [
     # YOUR PATTERNS
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(
-        url_name='schema', 
-        authentication_classes=[BasicAuthentication],
-        permission_classes=[permissions.IsAuthenticated]
-        ), name='swagger-ui'),
-    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    re_path(r'^swagger/$', SpectacularSwaggerView.as_view(
+    path('swagger/', SpectacularSwaggerView.as_view(
         url_name='schema',
-        authentication_classes=[BasicAuthentication],
-        permission_classes=[permissions.IsAuthenticated],
+        # authentication_classes=[BasicAuthentication],  # Basic Auth required for Swagger UI
+        # permission_classes=[permissions.IsAdminUser],
         ), name='swagger-ui'),
+    path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 
-class CustomJWTAuthenticationExtension(SimpleJWTScheme):
+class CustomJWTAuthenticationExtension(OpenApiAuthenticationExtension):
     target_class = CustomJWTAuthentication
     name = 'CustomJWT'
 
     def get_security_definition(self, auto_schema):
         return {
-            'type': 'http',
-            'schema': 'bearer',
-            'bearerFormat': 'JWT',
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'JWT Authorization',
+            'description': 'Enter your bearer token in the format: `Bearer <token>`',
         }
     
 
@@ -45,38 +47,3 @@ class BothHttpAndHttpsSchemaGenerator(BaseSchemaGenerator):
         schema = super().get_schema(request, public)
         schema.schemes = ["http", "https"]
         return schema
-
-# re_path(r'^swagger/$', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-# re_path(r'^swagger(?P<format>\.json|\.yaml)$', SpectacularAPIView.as_view(), name='schema-json'),
-# re_path(r'^redoc/$', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
-# schema_view = get_schema_view(
-#     openapi.Info(
-#         title="Car Rental API",
-#         default_version="v1",
-#         description="Car Rental Group",
-#         terms_of_service="https://www.google.com/policies/terms/",
-#         contact=openapi.Contact(email="info@carrental.group"),
-#         license=openapi.License(name="BSD License"),
-#     ),
-#     public=True,
-#     generator_class=BothHttpAndHttpsSchemaGenerator,
-#     permission_classes=(permissions.AllowAny,),
-# )
-# swagger_urlpatterns = [
-#     re_path(
-#         r"^swagger(?P<format>\.json|\.yaml)$",
-#         schema_view.without_ui(cache_timeout=0),
-#         name="schema-json",
-#     ),
-#     re_path(
-#         r"^swagger/$",
-#         schema_view.with_ui("swagger", cache_timeout=0),
-#         name="schema-swagger-ui",
-#     ),
-#     re_path(
-#         r"^redoc/$",
-#         schema_view.with_ui("redoc", cache_timeout=0),
-#         name="schema-redoc",
-#     ),
-# ]

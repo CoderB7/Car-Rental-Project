@@ -16,8 +16,11 @@ import environ
 from pathlib import Path
 from celery.schedules import crontab
 from django.urls import reverse_lazy
-
 from core.unfold_conf import *
+
+from django.apps import apps
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -35,7 +38,7 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.str("DEBUG")
 
-ALLOWED_HOSTS = ["localhost", "car-rental.userb.uz"]
+
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     "https://car-rental.userb.uz",
@@ -46,9 +49,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://car-rental.userb.uz",
     "http://car-rental.userb.uz",
     "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 # Application definition
 
 DJANGO_APPS = [
@@ -80,43 +84,51 @@ THIRD_PARTY_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + CUSTOM_APPS + THIRD_PARTY_APPS
 
-REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "core.authentication.CustomJWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-        ),
-    "DEFAULT_FILTER_BACKENDS": (
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.SearchFilter",
-    ),
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "EXCEPTION_HANDLER": 'core.exception_handler.custom_exception_handler',
-    "PAGE_SIZE": 10,
-}
-
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Car Rental API',
     'DESCRIPTION': 'Car Rental Group',
     'VERSION': 'v1',
-    'TERMS_OF_SERVICE': 'https://www.google.com/policies/terms/',
-    'CONTACT': {'email': 'info@carrental.group'},
-    'LICENSE': {'name': 'BSD License'},
-    'SERVE_PUBLIC': True,
-    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAuthenticated'],
     'GENERATOR_CLASS': 'core.schema.BothHttpAndHttpsSchemaGenerator',
     'SERVE_INCLUDE_SCHEMA': False,
-    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_DIST': 'SIDECAR',
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
     'REDOC_DIST': 'SIDECAR',
-    'PREPROCESSING_HOOKS': [
-        'core.hooks.remove_apis_from_list',
+    "PREPROCESSING_HOOKS": ["core.hooks.remove_apis_from_list"],
+    'SECURITY': [
+        {"Basic Auth": []},
     ],
-
-    'SECURITY': [{"Basic Auth": [],}],
-    # OTHER SETTINGS
+    # 'SECURITY_DEFINITIONS': {
+    #     'Basic Auth': {
+    #         'type': 'http',
+    #         'scheme': 'basic'
+    #     },
+    # },
     "EXCLUDE_PATH": [reverse_lazy("schema")],
     "SCHEMA_PATH_PREFIX": r"/api/"
+}
+
+# if not (DEBUG):
+SPECTACULAR_SETTINGS["SERVE_PERMISSIONS"] = ("rest_framework.permissions.IsAdminUser",)
+SPECTACULAR_SETTINGS["SERVE_AUTHENTICATION"] = ("rest_framework.authentication.BasicAuthentication",)
+
+
+# DRF
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework.authentication.BasicAuthentication',
+        "core.authentication.CustomJWTAuthentication",
+    ),
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "EXCEPTION_HANDLER": 'core.exception_handler.custom_exception_handler',
+    "PAGE_SIZE": 10,
 }
 
 MIDDLEWARE = [
@@ -154,17 +166,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": 'django.db.backends.postgresql_psycopg2',
-        "NAME": env.str("DB_NAME"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -184,7 +185,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LOGIN_URL = '/admin/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -232,9 +232,6 @@ SESSION_CACHE_ALIAS = 'default'
 
 # Custom User model
 AUTH_USER_MODEL = "users.User"
-
-CORS_ORIGIN_ALLOW_ALL = True # ?
-CORS_ALLOW_CREDENTIALS = True # ?
 
 # Email
 EMAIL_HOST = env.str("EMAIL_HOST")
