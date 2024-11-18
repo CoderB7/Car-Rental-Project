@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from drf_spectacular import openapi
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework import permissions
+from rest_framework.authentication import BasicAuthentication
 
 from drf_spectacular.generators import BaseSchemaGenerator
 from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
@@ -13,9 +14,17 @@ swagger_urlpatterns = [
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
-    path('api/schema/swagger-ui/', SpectacularAPIView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(
+        url_name='schema', 
+        authentication_classes=[BasicAuthentication],
+        permission_classes=[permissions.IsAuthenticated]
+        ), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    re_path(r'^swagger/$', SpectacularAPIView.as_view(url_name='schema'), name='swagger-ui'),
+    re_path(r'^swagger/$', SpectacularSwaggerView.as_view(
+        url_name='schema',
+        authentication_classes=[BasicAuthentication],
+        permission_classes=[permissions.IsAuthenticated],
+        ), name='swagger-ui'),
 ]
 
 
