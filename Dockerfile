@@ -14,7 +14,7 @@ COPY requirements/production.txt requirements/production.txt
 
 RUN apt-get update && \
     apt-get install -y gettext && \
-    apt-get install -y netcat && \
+    apt-get install -y netcat-openbsd && \
     pip install --upgrade pip && \ 
     pip install -r requirements/production.txt
 
