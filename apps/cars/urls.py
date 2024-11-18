@@ -11,7 +11,7 @@ from apps.cars.api.views import (
 )
 
 urlpatterns = [
-    # path('', CarAddListView.as_view(), name='car-add-list'),
+    path('', CarAddListView.as_view(), name='car-add-list'),
     path('<uuid:id>/', CarDetailUpdateDeleteView.as_view(), name='car-detail-update-delete'),
     
     path('brand/', BrandAddListView.as_view(), name='brand-add'),
