@@ -113,7 +113,7 @@ SPECTACULAR_SETTINGS = {
         'core.hooks.remove_apis_from_list',
     ],
 
-    'SECURITY': [{"Basic Auth": [], 'CustomJWT': []}],
+    'SECURITY': [{"Basic Auth": [],}],
     # OTHER SETTINGS
     "EXCLUDE_PATH": [reverse_lazy("schema")],
     "SCHEMA_PATH_PREFIX": r"/api/"
