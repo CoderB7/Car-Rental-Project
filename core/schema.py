@@ -10,7 +10,7 @@ from core.authentication import CustomJWTAuthentication
 
 
 class SecureSwaggerView(LoginRequiredMixin, SpectacularSwaggerView):
-    login_url = '/admin/login/'
+    login_url = '/admin/'
 
 
 swagger_urlpatterns = [
