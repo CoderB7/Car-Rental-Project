@@ -1,6 +1,5 @@
 from django.urls import re_path, path
-#from drf_yasg import openapi
-#from drf_yasg.views import get_schema_view
+from django.contrib.auth.mixins import LoginRequiredMixin
 from drf_spectacular import openapi
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework import permissions
@@ -10,13 +9,17 @@ from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from core.authentication import CustomJWTAuthentication
 
 
+class SecureSwaggerView(LoginRequiredMixin, SpectacularSwaggerView):
+    login_url = '/admin/login/'
+
+
 swagger_urlpatterns = [
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/swagger-ui/', SecureSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    re_path(r'^swagger/$', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    re_path(r'^swagger/$', SecureSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 
