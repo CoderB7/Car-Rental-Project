@@ -3,7 +3,7 @@ import jwt
 from datetime import date
 
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotAuthenticated
 
 from django.core.cache import cache
 from django.conf import settings
@@ -141,7 +141,7 @@ class LoginSerializer(serializers.Serializer):
         
         user = authenticate(username=email, password=password)
         if user is None:
-            raise serializers.ValidationError('Invalid email or password.')
+            raise NotAuthenticated('Invalid email or password.')
 
         return attrs
     

@@ -107,16 +107,14 @@ SPECTACULAR_SETTINGS = {
     "SCHEMA_PATH_PREFIX": r"/api/"
 }
 
-# if not (DEBUG):
+# if DEBUG is False:
+#     print('smth')
 SPECTACULAR_SETTINGS["SERVE_PERMISSIONS"] = ("rest_framework.permissions.IsAdminUser",)
 SPECTACULAR_SETTINGS["SERVE_AUTHENTICATION"] = ("rest_framework.authentication.BasicAuthentication",)
 
 
 # DRF
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         'rest_framework.authentication.BasicAuthentication',
         "core.authentication.CustomJWTAuthentication",

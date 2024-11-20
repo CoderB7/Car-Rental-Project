@@ -11,11 +11,6 @@ from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from core.authentication import CustomJWTAuthentication
 
 
-class CustomSwaggerView(SpectacularSwaggerView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [permissions.IsAdminUser]
-
-
 swagger_urlpatterns = [
     # YOUR PATTERNS
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
