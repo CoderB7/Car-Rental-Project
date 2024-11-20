@@ -254,6 +254,40 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Logging
+LOG_LEVEL = os.getenv('LOG_LEVEL')
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": LOG_LEVEL,
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "propagate": True,
+        }
+    },
+}
+
 
 # CONSTANTS
 ENCRYPTION_KEY=env.str('ENCRYPTION_KEY').encode()

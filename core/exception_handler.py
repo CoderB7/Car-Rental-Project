@@ -6,7 +6,7 @@ from rest_framework import status, serializers
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc:BaseException, context:dict)->Response:
     response = exception_handler(exc, context)
